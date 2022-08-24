@@ -1,0 +1,2379 @@
+metadata:
+  title: Evict a tenant
+  short title: Evict a tenant
+  comment: This program helps you make notice and eviction complaint forms to evict a tenant in Illinois.
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:phone-number-validation.yml  
+  - docassemble.ILAO:ilao-interview-framework.yml
+  - docassemble.ILAO:shared-basic-questions.yml
+---
+objects:
+  - users: ALPeopleList.using(there_are_any=True)
+  - other_parties: ALPeopleList.using(there_are_any=True)
+  - other_parties[i].alt_address: ALAddress
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+---
+code: |
+  al_form_type = 'new_case'
+  user_ask_role = 'plaintiff'
+---
+# Road map
+sections:
+  - review_answers: Review your answers
+---
+# interview order block
+mandatory: True
+code: |
+  ilao_easy_form_title = "Evict a tenant"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/evict-tenant"
+  form_name = "Eviction"
+  sees_nav_bar
+  how_to_use
+  accept_terms
+  eviction_overview
+  if other_parties[0].address.state != "IL":
+    not_illinois_property
+  if landlord_or_owner == False:
+    not_landlord_or_owner
+    
+  #if other_parties[0].address.county != "":
+  #county_confirmed
+  #if county_confirmed == False or other_parties[0].address.county == "":
+  #  county_selection  
+
+  #county_selection
+  
+  #if property_county == "Cook" or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
+  
+  if trial_court_index == -1 or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
+    if is_owner_occupied:
+      number_of_units
+    is_ordinance_property
+    
+  forms_to_assemble
+  property_county
+  #trial_court    
+  if eviction_reason == "none":
+    not_valid_reason
+  if eviction_reason == "no right to stay" and forms_to_assemble != "notice":
+    no_right_to_stay_type
+  if eviction_reason == "overdue rent":
+    if forms_to_assemble != "complaint":
+      notice_period
+    else:
+      notice_period_warning
+    rent_owed_start
+  if eviction_reason == "lease violation":
+    if forms_to_assemble != "complaint":
+      cure_allowed
+    else:
+      cure_period_warning
+    lease_violation_details
+  if eviction_reason == "non-renewal":
+    if other_parties[0].address.city.lower() == "chicago":
+      tenancy_length
+    if forms_to_assemble != "complaint":
+      nonrenewal_notice
+      lease_end_date
+    else:
+      nonrenewal_notice_warning
+      
+  other_parties.gather()
+  
+  if forms_to_assemble != "notice":
+    unknown_occupants
+    past_rent_requested
+    attachment_intro
+    if attach_notice == "No":
+      notice_lost
+    if attach_service == "No":
+      service_lost
+    if eviction_reason == "lease violation":
+      attach_lease
+      if attach_lease == "No":
+        lease_lost
+    if attach_other == "Yes":
+      other_attachments
+    if eviction_reason == "lease violation":
+      if attach_lease == "I don't know":
+        attachments_unsure
+    if attach_notice == "I don't know" or attach_service == "I don't know" or attach_other == "I don't know":
+      attachments_unsure
+      
+    summons_intro
+    if other_parties.number() > 5:
+      extra_summons
+
+    for tenant in other_parties[:5]:
+      tenant.phone_number
+      if tenant.has_alt_address:
+        tenant.alt_address.address
+        tenant.mobile_number
+    if trial_court_index == -1:
+      cook_district
+    courthouse_info
+    if has_court_date:
+      hearing_date
+   
+  users.gather(number=1)
+  users[0].address.address
+  users[0].phone_number
+  users[0].email
+  
+  if forms_to_assemble != "notice":
+    e_signature
+  get_docs_screen
+
+---
+id: welcome
+question: |
+  Evict a tenant
+subquestion: |
+  Welcome to Illinois Legal Aid Online's **Evict a tenant** Easy Form.
+
+  This program helps you make *Notice* and *Eviction Complaint* forms to evict a tenant in Illinois.
+  
+  Learn about **[evicting a tenant](https://www.illinoislegalaid.org/node/29691)**.
+field: sees_nav_bar
+---
+id: instructions
+continue button field: how_to_use
+question: |
+  Instructions
+subquestion: |
+  To use this program you will need: 
+
+  * The address of the property including any unit number,
+  * Details about violations of the lease,
+  * How much rent is due, if any,
+  * The written lease if you have one, and
+  * Your address and contact information.
+
+  Set aside 10 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+ 
+  ${ collapse_template(help_example) }  
+
+  Click on **{green words}** to learn what they mean. Some questions have a question mark in a circle ${ fa_icon("question-circle", color_css="#0dcaf0" ) } that also gives help.
+ 
+---
+template: help_example
+subject: |
+  **You can expand sections like this to show more information.**
+content: |  
+  This is an example of help. Click again to hide.
+---
+id: eviction overview
+continue button field: eviction_overview
+question: |
+  How to evict a tenant
+subquestion: |
+  To evict a tenant in Illinois, you need to do 2 things:
+  
+  1. Deliver a written **{Notice}** or **{Demand}** to the tenant, and
+  2. File an **{Eviction Complaint}** with the court and win the case.
+  
+  If you win the court case, you can ask the sheriff to enforce the **{Eviction Order}** to evict the tenant.
+  
+  Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. Read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
+---
+id: accept terms
+question: |
+  Terms of use
+subquestion: |
+  This program does not provide legal advice. It does not take the place of advice from a lawyer.
+
+  Using this program does not create an attorney-client relationship between you and Illinois Legal Aid Online or its employees.
+
+  ${ collapse_template(get_legal_help) }  
+
+fields:
+  - To continue, you must accept the **[terms of use](https://www.illinoislegalaid.org/about/terms-of-use)**.: accept
+    datatype: checkboxes
+    none of the above: False
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use. 
+continue button field: accept_terms
+---
+template: get_legal_help
+subject: |
+  **What if I need legal advice?**
+content: |  
+  If you have questions or concerns about your legal problem and want legal advice you should talk to a lawyer.
+  
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+---
+id: rental property address
+question: |
+  What is the address of the rental property?
+fields:
+  - Street address: other_parties[0].address.address
+    address autocomplete: True
+  - Address line 2: other_parties[0].address.unit
+    required: False
+  - City: other_parties[0].address.city
+  - State: other_parties[0].address.state
+    code: |
+      states_list()
+  - ZIP code: other_parties[0].address.zip
+  - County: other_parties[0].address.county
+---
+# not used vvvvvvvvvvvvvvvvv
+id: county confirmation
+question: |
+  Confirm county
+subquestion: |
+  It looks like the ${ other_parties[0].address.on_one_line(bare=True) } property is in ${ other_parties[0].address.county }. Is this correct?
+
+  This helps figure out which laws apply and where you would file an eviction court case.  
+
+  ${ collapse_template(county_lookup_help) }  
+
+fields:
+  - Property in ${ other_parties[0].address.county }: county_confirmed
+    datatype: yesnoradio
+# not used ^^^^^^^^^^^^^^^^
+---
+id: county selection
+continue button field: county_selection
+question: |
+  In which county is the property at ${ other_parties[0].address.on_one_line(bare=True) }?
+subquestion: |
+  We could not find the county for the property at ${ other_parties[0].address.on_one_line(bare=True) }, but you can select it here.
+  
+  This helps figure out which laws apply and where you would file an eviction court case.
+
+  ${ collapse_template(county_lookup_help) }  
+
+fields:
+  - no label: trial_court_index
+    datatype: integer
+    code: |
+      court_county_lookup()
+#      sorted([(-1, "Cook")] + [court for court in court_list._load_courts()['address_county'].items() if court[1] != "Cook"], key=lambda y: y[1])
+---
+code: |
+  def court_county_lookup(lowercase=False):
+    all_court_counties = court_list._load_courts()['address_county'].items()
+    filtered_courts = [(-1, "cook")] if lowercase else [(-1, "Cook")]
+    for court in all_court_counties:
+      if court[1] != "Cook":
+        court_name = court[1].lower() if lowercase else court[1]
+        filtered_courts.append((court[0],court_name))
+    return sorted( filtered_courts, key=lambda y: y[1])
+
+#  def court_county_lookup():
+#    all_court_counties = court_list._load_courts()['address_county'].items()
+#    filtered_courts = [(-1, "Cook")]
+#    for court in all_court_counties:
+#      if court[1] != "Cook":
+#        filtered_courts.append(court)
+#    return sorted( filtered_courts, key=lambda y: y[1])
+---
+code: |
+  county_name = other_parties[0].address.county.lower()
+  if county_name.endswith(" county"):
+    county_name = other_parties[0].address.county.lower()[0:-7]
+
+  county_courts = [county for county in court_county_lookup(lowercase=True) if county[1]==county_name]
+
+  if len(county_courts) >= 1:
+    trial_court_index = county_courts[0][0]
+
+  #if len(county_courts) < 1:
+  #  log("We can't find your county!", 'warning')
+  #else:
+  #  trial_court_index = county_courts[0][0]
+---
+template: county_lookup_help
+subject: |
+  **How do I look up the county?**
+content: |  
+  You can use this **[City-to-County Finder](https://www.statsamerica.org/CityCountyFinder/)** to find the county.
+---
+code: |
+  allowed_courts = ['Circuit']
+---
+depends on:
+  - trial_court_index
+  - cook_district
+code: |
+  if trial_court_index == -1:
+    if forms_to_assemble == "notice":
+      trial_court = court_list.as_court('trial_court', 15)
+      trial_court.address.county = "Cook County"
+    else:
+      trial_court = court_list.as_court('trial_court', cook_district)
+  else:
+    trial_court = court_list.as_court('trial_court', trial_court_index)
+    
+  court_name = str(trial_court.name)
+  court_street_address = str(trial_court.address.address)
+  court_city = str(trial_court.address.city)
+  court_state = str(trial_court.address.state)
+  court_zip = str(trial_court.address.zip)
+  courthouse_info = court_name + ", " + court_street_address + ", " + court_city + ", " + court_state + " " + court_zip
+  if " county" in trial_court.address.county.lower():
+    other_parties[0].address.county = trial_court.address.county
+  else:
+    other_parties[0].address.county = trial_court.address.county + " County"
+  
+---
+depends on:
+  - trial_court_index
+code: |
+      if trial_court_index == -1:
+        property_county = "Cook"
+      else:
+        property_county = trial_court.address.county
+---
+id: landlord or owner
+question: |
+  Are you landlord or owner of the rental property?
+subquestion: |
+fields:
+  - no label: landlord_or_owner
+    datatype: yesnoradio
+---
+id: not landlord or owner
+event: not_landlord_or_owner
+question: |
+  Sorry
+subquestion: |
+  You must be the landlord or owner of the rental property to use this program.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: eviction reason
+question: |
+  Why do you want to evict your tenant?
+subquestion: |
+
+  ${ collapse_template(eviction_reason_help) }
+field: eviction_reason
+choices:
+  - They owe rent.: overdue rent
+    help: |
+      This is for rent only. If they owe money for other things like utilities, late fees, or other fees, it would be considered violating a term of the lease.
+  - They violated a term of the lease.: lease violation
+  - Their lease is ending, and you do not want to renew.: non-renewal
+  - The people in the property have no right to stay there.: no right to stay
+    help: |
+      This includes:
+    
+      * Trespassers, or
+      * Other people who entered the property legally and refuse to leave.
+  - None of the above: none
+---
+template: eviction_reason_help
+subject: |
+  **What if I have more than one reason?**
+content: |  
+  There are different legal requirements for different kinds of evictions. The forms that this program makes are designed for evicting a tenant for a single reason. If you want to evict a tenant for more than one reason, you may want to talk with a lawyer.
+  
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.  
+---
+id: not illinois property
+event: not_illinois_property
+question: |
+  Sorry
+subquestion: |
+  The rental property must be in Illinois to use this program.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: which forms
+question: |
+  What forms do you want to make?
+subquestion: |
+  To evict a tenant, you have to do 2 things:
+  
+  1. Give a **{Notice}** or **{Demand}** to the tenant, and 
+  2. File an **{Eviction Complaint}** in court **after** you wait the required number of days* based on the kind of eviction, the lease, and the law.
+
+  ***Note:** In some cases when evicting for not paying rent or violating the lease, the tenant can fix the problem in the required number of days to prevent being evicted for that reason.
+
+    ${ collapse_template(cure_example) } 
+
+  Learn more about **[evicting a tenant](https://www.illinoislegalaid.org/node/29691)**.
+field: forms_to_assemble
+choices:
+  - Notice or Demand: notice
+  - Eviction Complaint (for court): complaint
+  - Both: both
+
+---
+template: cure_example
+subject: |
+  **What are examples of the tenant fixing the problem?**
+content: |  
+  Laws in some parts of Illinois give the tenant the right to fix the problem and avoid eviction. Some leases also give the tenant this right.
+  
+  Example 1: Let's say you have a tenant who is behind on rent. You give them a *Notice* that gives them 5 days to pay it. If they pay in full within 5 days, they will be caught up and cannot be evicted for being behind on rent at that time.
+
+  Example 2: Let's say you have a tenant who has a friend living at the apartment for 3 months. The lease agreement says they can have guests for no more than 1 month at a time. You give them a *Notice* that gives them 10 days to fix the lease violation. If the friend moves out within the 10 days, the tenant will no longer be breaking the lease. They cannot be evicted for that lease violation.
+
+---
+id: not valid reason for eviction
+event: not_valid_reason
+question: |
+  Sorry
+subquestion: |
+  This program can make forms only for the following types of evictions:
+  
+  * Your tenant is behind on rent,
+  * Your tenant violated the lease,
+  * Your tenant's lease is expiring, and you do not want to renew, or
+  * People in the rental property have no right to be there.
+  
+  If you want to evict your tenant for other reasons, you should talk to a lawyer.
+  
+  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: no reason to stay details
+question: |
+  How did the people in your property get there?
+field: no_right_to_stay_type
+choices:
+  - They are trespassers.: trespass
+  - They entered legally, but they have overstayed.: overstay
+---
+id: rent owed details
+question: |
+  Tell us more about the overdue rent
+subquestion: |
+  ${ collapse_template(rent_period_example) } 
+fields:
+  - Amount owed: rent_owed
+    datatype: currency
+    min: 1
+  - From (start): rent_owed_start
+    datatype: date
+  - To (end): rent_owed_end
+    datatype: date
+validation code: |
+  if rent_owed_start >= rent_owed_end:
+    validation_error("Rent owed start date must be before end date.", field="rent_owed_end")
+---
+template: rent_period_example
+subject: |
+  **How do I figure out the start and end dates?**
+content: |  
+  Rent is usually paid in advance. The start and end dates usually line up with rental periods.
+    
+  For example, a lease says rent for May is due by May 1st. If the tenant has not paid by May 1st, the landlord can give the tenant a Notice on May 2nd for not paying rent for the entire month of May. The start would be May 1st. The end would be May 31st.
+
+---
+id: lease ending details
+question: |
+  When does the lease end?
+subquestion: |
+  This can be an oral or written lease.
+  
+  ${ collapse_template(non_renewal_notice_period_help) } 
+fields:
+  - Lease end date: lease_end_date
+    datatype: date
+    #min: ${ today().plus(days=30).format("yyyy-MM-dd") }
+---
+template: non_renewal_notice_period_help
+subject: |
+  **What if the lease ends soon or has already ended?**
+content: |
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must give tenants notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends. Note: Your lease agreement may require a longer notice period.
+  
+  To give your tenant ${ rec_renew_period } days advance notice, you might need to extend the lease end date.
+  
+  If your *Notice* does not give your tenant the required number of days advance notice, and you file an eviction case, it may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.  
+---
+id: non-renewal notice
+continue button field: nonrenewal_notice
+question: |
+  Required notice period
+subquestion: |
+  When you decide not to renew a lease, you need to let the tenants know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
+
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must give tenants notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends.
+  
+  Note: Your lease agreement may require a longer notice period.
+  
+  If your *Notice* does not give your tenant the required number of days advance notice, and you file an eviction case, it may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.  
+---
+id: tenancy duration
+question: |
+  How long have the tenants lived in the property?
+field: tenancy_length
+choices:
+  - Up to 6 months: Up to 6 months
+  - 6 months to 3 years: 6 months to 3 years
+  - Over 3 years: Over 3 years 
+---
+id: non-renewal notice warning
+continue button field: nonrenewal_notice_warning
+question: |
+  Required notice period
+subquestion: |
+  When landlords decide not to renew a lease, they need to let their tenants know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
+
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must have given your tenant notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends.
+  
+  Note: Your lease agreement may require a longer notice period.
+  
+  If your *Notice* did not give your tenant the required number of days advance notice, your eviction case may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
+---
+id: lease violation details
+question: |
+  How did your tenant violate the lease?
+subquestion: |
+  Try to be specific about:
+  
+  * Who violated the lease,
+  * What they did, and
+  * When they violated the lease.
+fields:
+  - What happened: lease_violation_details
+    input type: area
+    rows: 3
+    maxlength: 300
+---
+id: other remedies
+question: |
+  What else do you want the court to order?
+subquestion: |
+  Your *Eviction Complaint* will ask for possession of the rental property and court costs. You can also ask for the following.
+fields:
+  - Past rent owed: past_rent_requested
+    datatype: yesnowide
+    help: |
+      You can only ask for past rent if you had a lease agreement with the people you are evicting and they still owe rent.
+  - Amount: past_rent_due
+    datatype: currency
+    min: 1
+    show if: past_rent_requested
+  - Future rent due through the date of judgment: use_and_occupancy
+    datatype: yesnowide
+  - Attorneys' fees (if applicable): attorneys_fees
+    datatype: yesnowide
+    help: |
+      % if attorneys_fees_prohibited:
+      Based on your answers, ${ applicable_law }. Landlords are usually not allowed to get attorney's fees in these cases, even if this is in the lease.
+      % else:
+      Based on your answers, ${ applicable_law }. Landlords are usually allowed to get attorney's fees in these cases if this is in the lease.
+      % endif
+---
+id: notice period
+question: |
+  How many days does the tenant have to pay their rent?
+subquestion: |
+  This is called the notice period. It is the number of days the tenant has to pay the overdue rent they owe and avoid an eviction.
+  
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_notice_period } days** is required.
+  
+  Note: Your lease agreement may require a longer notice period.
+fields:
+  - Days to pay rent: notice_period
+    datatype: integer
+    min: 1
+---
+id: notice period warning
+continue button field: notice_period_warning
+question: |
+  Number of days to pay rent
+subquestion: |
+  Before filing an Eviction case in court for nonpayment of rent, landlords must give tenants time to pay what they owe. This is called the notice period. It is the number of days the tenant has to pay the rent they owe and avoid an eviction.
+  
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_notice_period } days** is required.
+  
+  Note: Your lease agreement may require a longer notice period.
+  
+  If your *Notice* did not give your tenant the required number of days to pay the rent, your eviction case may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
+---
+id: right to cure
+question: |
+  Does the tenant have the right to fix the lease violation?
+subquestion: |
+  This is also known as a "right to cure" the problem. If the tenant does not have a right to fix the problem, the *Notice* must tell them when the lease will end.
+  
+  Based on your answers, ${ applicable_law }. 
+  % if rec_cure_allowed == True:
+  Your tenant has a right to fix the lease violation in **${ rec_cure_period } days**.
+  
+  Note: Your lease agreement may require a longer "cure" period.
+  % else:
+  A notice period of at least **${ rec_cure_period } days** is required.
+  
+  Note: Your lease agreement may require a "right to cure" or a longer notice period.
+  % endif
+fields:
+  - Right to fix?: cure_allowed
+    datatype: yesnoradio
+  - Days to fix lease violation: cure_period
+    datatype: integer
+    min: 10
+    show if:
+      variable: cure_allowed
+      is: True
+  - Days until lease ends: lease_end_period
+    datatype: integer
+    min: 10
+    show if:
+      variable: cure_allowed
+      is: False
+---
+id: right to cure warning
+continue button field: cure_period_warning
+question: |
+  Number of days to leave or fix problem
+subquestion: |
+  Before filing an Eviction case in court for a lease violation, landlords must give tenants time to leave the property. Sometimes, tenants may have a right to fix the issue. This is also known as a "right to cure." If the tenant does not have a right to fix the problem, the *Notice* must tell them when the lease will end.
+  
+  Based on your answers, ${ applicable_law }. 
+  % if rec_cure_allowed == True:
+  Your tenant has a right to fix the lease violation in **${ rec_cure_period } days**.
+  
+  Note: Your lease agreement may require a longer "cure" period.
+  
+  If your *Notice* did not give your tenant the required number of days to fix the problem, your eviction case may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
+  % else:
+  A notice period of at least **${ rec_cure_period } days** is required.
+  
+  Note: Your lease agreement may require a "right to cure" or a longer notice period.
+  
+  If your *Notice* did not give your tenant the required number of days to leave or fix the problem, your eviction case may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
+  % endif
+---
+id: attachment intro
+continue button field: attachment_intro
+question: |
+  Attach documents to your Eviction Complaint
+subquestion: |
+  You need to attach certain documents to your *Eviction Complaint*. Which ones depends on why you are evicting your tenant. The next screens will explain more.
+  
+  If you do not have the required documents, you should attach an *Affidavit – Supporting Documents Not Attached to Eviction Complaint*. If you do not attach either, your eviction case might be dismissed, and you will need to start over.
+
+  The documents are:
+  
+  * The *Notice* or *Demand*,
+  * An *Affidavit of Service of a Demand or Notice*,
+  * The written lease or relevant parts (if evicting for a lease violation), and
+  * Other documents that support your *Eviction Complaint*.
+---
+id: attach notice
+question: |
+  Will you attach the *Notice* or *Demand* to your *Eviction Complaint*?
+subquestion: |
+  You must attach the *Notice* or *Demand* or explain why you did not.
+field: attach_notice
+choices:
+  - Yes: Yes
+  - No: No
+  - I don't know: I don't know
+---
+id: reasons why not attaching notice
+question: |
+  Why aren't you attaching the *Notice* or *Demand* to your Eviction Complaint?
+fields:
+  - label: I cannot find or did not save the *Notice* or *Demand*.
+    field: notice_lost
+    datatype: yesno
+  - label: A *Notice* or *Demand* is not required in this case.
+    field: notice_not_required
+    datatype: yesno
+  - label: Other reason
+    field: notice_not_attached_other
+    datatype: yesno
+  - label: Explain why you are not attaching the *Notice* or *Demand*
+    field: notice_not_attached_other_reason
+    maxlength: 40
+    show if: notice_not_attached_other
+---
+id: attach affidavit of service
+question: |
+  Will you attach the Affidavit of Service of a Demand or Notice to your Eviction Complaint?
+subquestion: |
+  You must attach the *Affidavit of Service of a Demand or Notice* or explain why you did not.
+
+  ${ collapse_template(affidavit_of_service_help) } 
+
+field: attach_service
+choices:
+  - Yes: Yes
+  - No: No
+  - I don't know: I don't know
+---
+template: affidavit_of_service_help
+subject: |
+  **What is an Affidavit of service?**
+content: |  
+  An **Affidavit of service** is a written statement signed under oath which describes where, when, and how a person received court documents.
+---
+id: reasons why not attaching service
+question: |
+  Why aren't you attaching the Affidavit of Service of a Demand or Notice to your Eviction Complaint?
+fields:
+  - label: I cannot find or did not save my copy.
+    field: service_lost
+    datatype: yesno
+  - label: A *Notice* or *Demand* is not required in this case.
+    field: service_not_required
+    datatype: yesno
+  - label: Other reason
+    field: service_not_attached_other
+    datatype: yesno
+  - label: Explain why you are not attaching proof of service
+    field: service_not_attached_other_reason
+    maxlength: 40
+    show if: service_not_attached_other
+---
+id: attach lease
+question: |
+  Will you attach the written lease or the relevant part to your Eviction Complaint?
+subquestion: |
+  If you are evicting a tenant because they violated the lease, you must attach the written lease or the relevant parts of it.
+field: attach_lease
+choices:
+  - Yes: Yes
+  - No: No
+  - I don't know: I don't know
+---
+id: reasons why not attaching lease
+question: |
+  Why aren't you attaching the written lease to your Eviction Complaint?
+fields:
+  - label: A written lease is not required in this case.
+    field: lease_not_required
+    datatype: yesno
+  - label: I did not have a written lease with the tenant.
+    field: lease_not_written
+    datatype: yesno
+  - label: I cannot find or did not save my copy.
+    field: lease_lost
+    datatype: yesno
+  - label: Other reason
+    field: lease_not_attached_other
+    datatype: yesno
+  - label: Explain why you are not attaching the written lease
+    field: lease_not_attached_other_reason
+    maxlength: 40
+    show if: lease_not_attached_other
+---
+id: attach other
+question: |
+  Will you attach other documents to your Eviction Complaint?
+subquestion: |
+  You can attach other documents that will support why your tenant should be evicted.
+field: attach_other
+choices:
+  - Yes: Yes
+  - No: No
+  - I don't know: I don't know
+---
+id: other attachment details
+question: |
+  What other documents will you attach to your Eviction Complaint?
+subquestion: |
+  You do not need to list the *Notice* or *Demand*, the *Affidavit of Service*, or the written lease. 
+fields:
+  - List what else you will attach: other_attachments
+    input type: area
+    rows: 3
+    maxlength: 300
+---
+id: attachments unsure
+continue button field: attachments_unsure
+question: |
+  Not sure about attachments to your Eviction Complaint
+subquestion: |
+  Before you file your *Eviction Complaint*, make sure you fill in:
+  
+  * This part of the *Eviction Complaint* (page 2), and
+  
+  [FILE eviction_complaint_attachments.png, 100%, Eviction Complaint page 2]
+  
+  * The *Affidavit - Supporting Documents Not Attached to Eviction Complaint*, if necessary.
+  
+  [FILE affidavit.png, 75%, Affidavit of documents not attached]
+  
+  Read the How to File & Present an Eviction Complaint instructions you download at the end of this program to learn more.
+
+---
+id: landlord name
+sets:
+    - users[0].name.first
+    - users[0].name.last
+    - users[0].name.middle
+    - users[0].name.suffix
+question:  |
+  What is your name?
+fields:
+  - code: |
+      users[0].name_fields()
+validation code: |
+  if len(users[0].name.first) > 25:
+    validation_error("First name must be 25 characters or less.", field="users[0].name.first")  
+  if len(users[0].name.middle) > 25:
+    validation_error("Middle name must be 25 characters or less.", field="users[0].name.middle")  
+  if len(users[0].name.last) > 25:
+    validation_error("Last name must be 25 characters or less.", field="users[0].name.last")  
+---
+id: landlord address
+question: |
+  What is your address?
+fields:
+  - Street address: users[0].address.address
+    address autocomplete: True
+  - Address line 2: users[0].address.unit
+    required: False
+    maxlength: 10
+  - City: users[0].address.city
+  - State: users[0].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: users[0].address.zip
+---
+id: landlord email address
+question: |
+  What is your email address?
+subquestion: |
+  If you do not have email, you can leave this blank.
+fields:
+  - Email: users[0].email    
+    datatype: email
+    required: False
+---
+id: landlord phone number
+question: |
+  What is your phone number?
+subquestion: |
+  If you do not want to include this on your forms, you can leave this blank.
+fields:
+  - Phone: users[0].phone_number
+    datatype: al_international_phone
+    required: False
+---
+id: tenant name
+sets:
+    - other_parties[i].name.first
+    - other_parties[i].name.last
+    - other_parties[i].name.middle
+    - other_parties[i].name.suffix
+question: |
+  % if eviction_reason == "no right to stay":
+  What is the ${ ordinal(i) } occupant's name?
+  % else:
+  What is the ${ ordinal(i) } tenant's name?
+  % endif
+fields:
+  - code: |
+      other_parties[i].name_fields()
+validation code: |
+  if len(other_parties[0].name.first) > 25:
+    validation_error("First name must be 25 characters or less.", field="other_parties[0].name.first") 
+  if len(other_parties[0].name.middle) > 25:
+    validation_error("Middle name must be 25 characters or less.", field="other_parties[0].name.middle")
+  if len(other_parties[0].name.last) > 25:
+    validation_error("Last name must be 25 characters or less.", field="other_parties[0].name.last")
+---
+id: any other tenants
+question: |
+  % if eviction_reason == "no right to stay":
+  Is there another occupant?
+  % else:
+  Is there another tenant?
+  % endif
+subquestion: |
+  So far you have told us about ${comma_and_list(other_parties.complete_elements().full_names())}.
+fields:
+  - "Anyone else?": other_parties.there_is_another
+    datatype: yesnoradio
+
+---
+id: summons intro
+continue button field: summons_intro
+question: |
+  Summons
+subquestion: |
+  In an eviction case, the court papers include an *Eviction Complaint* and a *Summons*. The *Summons* tells the tenants that you are asking the court for an eviction and gives them the court date.
+  
+  You may have to pay the sheriff to deliver each *Summons*. This delivery is called "service."
+  
+  If the *Summons* is not properly served by the sheriff, you might not get an *Eviction Order* or a money judgment.
+---
+id: extra summons required
+continue button field: extra_summons
+question: |
+  Additional Summons
+subquestion: |
+  This program makes the *Summons* forms for the first 5 tenants, plus one for Unknown Occupants.
+  
+  You will need to fill out *Summons* forms for the other tenants in your case. 
+  
+  You can download blank *Summons* forms at the end of this program.
+---
+id: tenant contact information
+question: |
+  Tell us more about ${ other_parties[i].name.full(middle="full") }
+subquestion: |
+  Enter ${ other_parties[i].name.full(middle="full") }'s contact information, if you know it.
+fields:
+  - Phone: other_parties[i].phone_number
+    datatype: al_international_phone
+    required: False
+  - Email: other_parties[i].email    
+    datatype: email
+    required: False
+---
+id: tenant alt address question
+question: |
+  Do you have another address where ${ other_parties[i].name.full(middle="full") } can be found?
+subquestion: |
+  If the sheriff cannot find ${ other_parties[i].name.full(middle="full") } at ${ other_parties[0].address.on_one_line(bare=True) }, the sheriff can try to serve them at another location.
+fields:
+  - Other address for ${other_parties[i].name.full(middle="full")}?: other_parties[i].has_alt_address
+    datatype: yesnoradio
+---
+id: alt address
+question: |
+  What is the other address where ${ other_parties[i].name.full(middle="full") } can be found?
+fields:
+  - Street address: other_parties[i].alt_address.address
+    address autocomplete: True
+  - Address line 2: other_parties[i].alt_address.unit
+    required: False
+  - City: other_parties[i].alt_address.city
+  - State: other_parties[i].alt_address.state
+    code: |
+      states_list()
+  - ZIP code: other_parties[i].alt_address.zip
+---
+id: tenant alt contact information
+question: |
+  Other contact information
+subquestion: |
+  Enter ${ other_parties[i].name.full(middle="full") }'s other contact information, if you know it.
+fields:
+  - Phone: other_parties[i].mobile_number
+    datatype: al_international_phone
+    required: False
+  - Email: other_parties[i].alt_email    
+    datatype: email
+    required: False
+---
+id: unknown occupants
+question: |
+  Include "Unknown Occupants" on your Eviction Complaint?
+subquestion: |
+  This can help the sheriff evict everyone on the property. If the sheriff comes out to evict the people on the property and finds someone there who was not named in the eviction, the sheriff will not evict that person unless you have included "Unknown Occupants" as a Defendant. 
+  
+  Note: You may have to pay to have the sheriff deliver court papers to Unknown Occupants.
+fields:
+  - "Add Unknown Occupants?": unknown_occupants
+    datatype: yesnoradio
+---
+id: hearing scheduled
+question: |
+  Do you already have a court date scheduled?
+subquestion: |
+  In some counties, the circuit clerk can give you a hearing date before you file your case. This is sometimes called the Return Date. If you have that information now, you can add it to your forms.
+  
+  If the clerk gives you the hearing date after you file your *Eviction Complaint*, you can add it to your *Summons* later.
+fields:
+  - "Know court date and time?": has_court_date
+    datatype: yesnoradio
+---
+id: hearing info
+question: |
+  Court hearing information
+subquestion: |
+  Enter the date, time, and courtroom information for your eviction case. If the clerk did not give you a courtroom yet, leave it blank. You can add this information to the *Summons* after you file your *Eviction Complaint*.
+fields:
+  - Date: hearing_date
+    datatype: date
+    min: ${ today().format("yyyy-MM-dd") }
+  - Time: hearing_time
+    datatype: time
+  - Courtroom: courtroom
+    maxlength: 10
+    required: False
+
+---
+id: owner occupied
+question: |
+  Do you live in the property?
+subquestion: |
+  If you do, this means the property is owner-occupied.
+fields:
+  - label:
+    field: is_owner_occupied
+    datatype: yesnoradio
+---
+id: number of units
+question: |
+  How many units are in the property?
+subquestion: |
+  Include all residential units, whether occupied or vacant.
+fields:
+  - Number of units: number_of_units
+    datatype: integer
+    min: 1
+---
+id: ordinance property type
+question: |
+  Is the property one of these types?
+subquestion: |
+  % if other_parties[0].address.city.lower() == "chicago":
+  
+    * A unit in a hotel, motel, or rooming house (unless rent is paid monthly and is occupied for more than 32 days)
+    * A medical, educational, or relgious facility
+    * A school dormitory, shelter, employee's quarters or non-residential rental property
+    * A unit occupied by the buyer through a real estate purchase contract
+    * An owner-occupied co-op or condominium
+  % elif other_parties[0].address.city.lower() == "oak park": 
+  
+    * A hotel or motel
+    * A medical, educational, or relgious facility
+    * A school dormitory
+    * A temporary or transitional shelter
+    * A unit occupied by your employee as a condition of their employment
+    * A co-op
+  % elif other_parties[0].address.city.lower() == "mount prospect" or other_parties[0].address.city.lower() == "mt prospect" or other_parties[0].address.city.lower() == "mt. prospect": 
+  
+    * A medical, educational, or relgious facility
+    * A residential care or retirement home
+    * A hotel or motel
+    * A unit occupied by the buyer through a real estate purchase contract
+  % elif other_parties[0].address.city.lower() == "evanston": 
+  
+    * A medical, educational, or relgious facility
+    * A hotel or motel
+    * A fraternity or social organization
+    * A unit occupied by the buyer through a real estate purchase contract
+    * A co-op
+  % elif other_parties[0].address.city.lower() == "dekalb": 
+  
+    * A medical, educational, or relgious facility
+    * A hotel or motel
+    * Government-owned
+    * A rooming house
+  % elif other_parties[0].address.city.lower() == "urbana": 
+  
+    * A medical, educational, or relgious facility
+    * A hotel or motel
+    * A fraternity or social organization
+    * A unit occupied by the buyer through a real estate purchase contract
+    * A unit occupied by your employee as a condition of their employment
+  % else:
+  
+    * A unit in a hotel, motel, or rooming house (unless rent is paid monthly and is occupied for more than 32 days)
+    * A school dormitory
+    * A shelter or a single-room-occupancy (SRO)
+    * A unit occupied by your employee as a condition of their employment
+    * An owner-occupied co-op
+  % endif
+
+  The types of property listed above are **not** covered by a local landlord-tenant law. If the property is one of these, then state law will apply.
+fields:
+  - no label: is_ordinance_property
+    input type: radio
+    choices:
+      - "Yes": False
+      - "No": True
+---
+sets: applicable_law
+depends on:
+  - is_ordinance_property
+  - other_parties[0].address.city
+  - trial_court
+  - trial_court_index
+  #- property_county
+  - number_of_units
+  - is_owner_occupied
+code: |
+  if trial_court_index == -1 or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
+  #if property_county == "Cook" or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
+    if is_ordinance_property == True:
+      if other_parties[0].address.city.lower() == "chicago" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
+        applicable_law = "the Chicago Residential Landlord Tenant Ordinance applies"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = True
+        attorneys_fees_prohibited = True
+        if eviction_reason == "non-renewal":
+          if tenancy_length == "Up to 6 months":
+            rec_renew_period = 30		
+          elif tenancy_length == "6 months to 3 years":
+            rec_renew_period = 60		
+          else:
+            rec_renew_period = 120		
+      elif other_parties[0].address.city.lower() == "oak park" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
+        applicable_law = "the Oak Park Residential Landlord Tenant Ordinance applies"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = True
+        attorneys_fees_prohibited = True
+        rec_renew_period = 60		
+      elif other_parties[0].address.city.lower() == "mount prospect" or other_parties[0].address.city.lower() == "mt prospect" or other_parties[0].address.city.lower() == "mt. prospect":
+        applicable_law = "Mount Prospect Residential Landlord Tenant Regulations apply"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = True
+        attorneys_fees_prohibited = False
+        rec_renew_period = 90		
+      elif other_parties[0].address.city.lower() == "evanston":
+        applicable_law = "the Evanston Residential Landlord Tenant Ordinance applies"
+        if eviction_reason == "overdue rent" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units < 3)):		
+          rec_notice_period = 2
+        else:
+          rec_notice_period = 10
+        rec_cure_period = 30
+        rec_cure_allowed = True
+        attorneys_fees_prohibited = False
+        rec_renew_period = 30		
+      elif other_parties[0].address.city.lower() == "dekalb":
+        applicable_law = "DeKalb Landlord-Tenant Regulations apply"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = False
+        attorneys_fees_prohibited = False
+        rec_renew_period = 30		
+      elif other_parties[0].address.city.lower() == "urbana":
+        applicable_law = "Chapter 12.5 of the Urbana City Code applies"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = False
+        attorneys_fees_prohibited = True
+        rec_renew_period = 60		
+      elif trial_court_index == -1 and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
+      #elif property_county == "Cook" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
+        applicable_law = "the Cook County Residential Tenant Landlord Ordinance applies"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = True
+        attorneys_fees_prohibited = True
+        rec_renew_period = 60
+      else:
+        applicable_law = "state law applies"
+        rec_notice_period = 5
+        rec_cure_period = 10
+        rec_cure_allowed = False
+        attorneys_fees_prohibited = False
+        rec_renew_period = 30
+    else:
+      applicable_law = "state law applies"
+      rec_notice_period = 5
+      rec_cure_period = 10
+      rec_cure_allowed = False
+      attorneys_fees_prohibited = False
+      rec_renew_period = 30
+  else:
+    applicable_law = "state law applies"
+    rec_notice_period = 5
+    rec_cure_period = 10
+    rec_cure_allowed = False
+    attorneys_fees_prohibited = False
+    rec_renew_period = 30
+
+---
+id: Cook County district
+question: |
+  Where do you want to file your eviction case?
+subquestion: |
+  In Cook County, you can file your eviction in the district where the property is located. Click the ${ fa_icon("question-circle", color_css="#0dcaf0" ) } to learn which towns are in each district.
+  
+  ${ collapse_template(cook_district_help) }  
+field: cook_district
+choices:
+  - First Municipal District, Daley Center, 50 W. Washington Street, Chicago: 15
+    help: |
+      The First Municipal District covers the **City of Chicago**. 
+  - Second Municipal District, 5600 Old Orchard Road, Skokie: 16
+    help: |
+      The Second Municipal District covers the **northern suburbs of Cook County**. It includes:
+      
+      * Deerfield
+      * Des Plaines
+      * Evanston
+      * Glencoe
+      * Glenview
+      * Golf
+      * Kenilworth
+      * Lincolnwood
+      * Maine (not within Rosemont)
+      * Morton Grove
+      * New Trier
+      * Niles
+      * Northbrook
+      * Northfield (not within Prospect Heights)
+      * Park Ridge
+      * Skokie
+      * Wilmette
+      * Winnetka
+      * Wheeling (within Des Plaines)
+  - Third Municipal District, 2121 Euclid Avenue, Rolling Meadows: 17
+    help: |
+      The Third Municipal District covers the **northwestern suburbs of Cook County**. It includes:
+
+      * Arlington Heights
+      * Barrington
+      * Barrington Hills
+      * Bartlett
+      * Bensenville
+      * Buffalo Grove
+      * East Dundee
+      * Elgin
+      * Elk Grove
+      * Elk Grove Village
+      * Hanover
+      * Hanover Park
+      * Harwood Heights
+      * Hoffman Estates
+      * Inverness
+      * Leyden (within Rosemont and Schiller Park)
+      * Maine (within Rosemont)
+      * Mount Prospect
+      * Norridge
+      * Northfield (within Prospect Heights)
+      * Norwood Park (not within Chicago)
+      * Palatine
+      * Prospect Heights
+      * Rolling Meadows
+      * Roselle
+      * Rosemont
+      * Schaumburg
+      * Schiller Park
+      * South Barrington
+      * Streamwood
+      * Wheeling (not within Des Plaines)      
+  - Fourth Municipal District, 1500 Maybrook Drive, Maywood: 18
+    help: |
+      The Fourth Municipal District covers the **western suburbs of Cook County**. It includes:
+      
+      * Bellwood
+      * Berkeley
+      * Berwyn
+      * Broadview
+      * Brookfield
+      * Cicero
+      * Elmwood Park
+      * Forest Park
+      * Franklin Park
+      * Hillside
+      * La Grange Park
+      * Leyden (not within Rosemont and Schiller Park)
+      * Maywood
+      * Melrose Park
+      * Northlake
+      * North Riverside
+      * Oak Park
+      * Proviso
+      * River Forest
+      * River Grove
+      * Riverside
+      * Stone Park
+      * Westchester  
+  - Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview: 19
+    help: |
+      The Fifth Municipal District covers the **southwestern suburbs of Cook County**. It includes:
+      
+      * Alsip
+      * Bedford Park
+      * Bridgeview
+      * Burbank
+      * Burr Ridge
+      * Chicago Ridge
+      * Crestwood
+      * Countryside
+      * Evergreen Park
+      * Forest View
+      * Hickory Hills
+      * Hinsdale
+      * Hodgkins
+      * Hometown
+      * Indian Head Park
+      * Justice
+      * La Grange
+      * Lemont
+      * Lyons
+      * McCook
+      * Merrionette Park
+      * Oak Forest
+      * Oak Lawn
+      * Orland Hills
+      * Orland Park
+      * Palos
+      * Palos Heights
+      * Palos Hills
+      * Palos Park
+      * Stickney
+      * Summit
+      * Tinley Park
+      * Western Springs
+      * Willow Springs
+      * Woodridge
+      * Worth
+  - Sixth Municipal District, 16501 South Kedzie Parkway, Markham: 20
+    help: |
+      The Sixth Municipal District covers the **southern suburbs of Cook County**. It includes:
+      
+      * Bloom
+      * Blue Island
+      * Bremen
+      * Burnham
+      * Calumet
+      * Calumet City
+      * Calumet Park
+      * Chicago Heights
+      * Country Club Hills
+      * Crete
+      * Dixmoor
+      * Dolton
+      * East Hazel Crest
+      * Flossmoor
+      * Ford Heights
+      * Glenwood
+      * Harvey
+      * Hazel Crest
+      * Homewood
+      * Lansing
+      * Lynwood
+      * Markham
+      * Matteson
+      * Midlothian
+      * Olympia Fields
+      * Park Forest
+      * Phoenix
+      * Posen
+      * Rich
+      * Richton Park
+      * Riverdale
+      * Robbins
+      * Sauk Village
+      * South Chicago Heights
+      * South Holland
+      * Steger
+      * Thornton  
+---
+template: cook_district_help
+subject: |
+  **What if I am still not sure where to file?**
+content: |  
+  Visit **[Illinois Court Help](https://www.ilcourthelp.gov/)**, or you can call or text (833) 411-1121 for assistance.
+---
+id: e-signature
+question: |
+  Do you want to add your e-signature to your Eviction Complaint?
+subquestion: |
+  If you do not add your e-signature, you can sign your paper form later.
+fields:
+  - "Add e-signature?": e_signature
+    datatype: yesnoradio
+---
+id: get docs screen
+event: get_docs_screen
+question: |
+  Download
+subquestion: |
+  
+  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+
+  Read the instructions to learn what to do with your forms.
+
+  % if forms_to_assemble != "notice":
+  This program does not file your *Eviction Complaint* with the court. You will need to do this yourself. Learn about **[e-filing in Illinois](https://www.illinoiscourts.gov/eservices/efileil/)**.
+  % endif
+
+  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+  
+  ${ al_user_bundle.download_list_html() }
+
+  &nbsp;
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  % if forms_to_assemble != "notice":
+  
+  This program does not file your *Eviction Complaint* with the court. You will need to do this yourself. Learn about **[e-filing in Illinois](https://www.illinoiscourts.gov/eservices/efileil/)**.
+  % endif
+
+  Thank you for using ILAO Easy Forms!
+under: |
+  % if not user_logged_in():
+  [${fa_icon("sign-in-alt", color="#0079d0", size="sm")} **Sign-in**](${url_of('login', next=interview_url())}) or [**create**](${url_of('register', next=interview_url())}) an ILAO Easy Form account to save your progress (optional).
+  % endif 
+
+  &nbsp;
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+---
+generic object: ALDocumentBundle
+template: x.send_email_template
+subject: |
+  Eviction forms
+content: |
+  Your forms are attached.
+  
+  Thanks for using ILAO Easy Forms!
+  
+  [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
+---
+
+---
+objects:
+  - eviction_instructions: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
+  - notice_lease_violation: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
+  - notice_nonpayment: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
+  - notice_nonrenewal: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
+  - demand_for_possession: ALDocument.using(title="Demand", filename="demand.pdf",  has_addendum=False)
+  - affidavit_of_service: ALDocument.using(title="Affidavit of service", filename="affidavit.pdf",  has_addendum=False)
+  - eviction_complaint: ALDocument.using(title="Complaint", filename="complaint.pdf", has_addendum=False)
+  - eviction_complaint_affidavit: ALDocument.using(title="Affidavit - Supporting Documents", filename="complaint_affidavit.pdf", has_addendum=False)
+  - eviction_summons: ALDocument.using(title="Summons", filename="summons.pdf", has_addendum=False)
+  - eviction_summons_2: ALDocument.using(title="Summons 2", filename="summons_2.pdf", has_addendum=False)
+  - eviction_summons_3: ALDocument.using(title="Summons 3", filename="summons_3.pdf", has_addendum=False)
+  - eviction_summons_4: ALDocument.using(title="Summons 4", filename="summons_4.pdf", has_addendum=False)
+  - eviction_summons_5: ALDocument.using(title="Summons 5", filename="summons_5.pdf", has_addendum=False)
+  - eviction_summons_blank: ALDocument.using(title="Summons (blank)", filename="summons_blank.pdf", has_addendum=False)
+  - eviction_summons_unknown: ALDocument.using(title="Summons Unknown Occupants", filename="summons_unknown_occupants.pdf", has_addendum=False)
+  - eviction_help_illinois: ALDocument.using(title="Eviction help Illinois", filename="eviction_help_illinois.pdf", has_addendum=False)
+  - eviction_help_cook_county: ALDocument.using(title="Eviction help Cook County", filename="eviction_help_cook_county.pdf", has_addendum=False)
+  - eviction_help_dupage_county: ALDocument.using(title="Eviction help DuPage County", filename="eviction_help_dupage_county.pdf", has_addendum=False)
+  - eviction_help_winnebago_county: ALDocument.using(title="Eviction help Winnebago County", filename="eviction_help_winnebago_county.pdf", has_addendum=False)
+  
+  
+---
+code: |
+  eviction_instructions.enabled = True
+  notice_nonpayment.enabled = False
+  notice_lease_violation.enabled = False
+  notice_nonrenewal.enabled = False
+  demand_for_possession.enabled = False
+  affidavit_of_service.enabled = False
+  eviction_complaint.enabled = False
+  eviction_complaint_affidavit.enabled = False
+  eviction_summons.enabled = False
+  eviction_summons_2.enabled = False
+  eviction_summons_3.enabled = False
+  eviction_summons_4.enabled = False
+  eviction_summons_5.enabled = False
+  eviction_summons_blank.enabled = False
+  eviction_summons_unknown.enabled = False
+  summons_bundle.enabled = False
+  summons_2_bundle.enabled = False
+  summons_3_bundle.enabled = False
+  summons_4_bundle.enabled = False
+  summons_5_bundle.enabled = False
+  summons_blank_bundle.enabled = False
+  summons_unknown_bundle.enabled = False
+  eviction_help_illinois.enabled = False
+  eviction_help_cook_county.enabled = False
+  eviction_help_dupage_county.enabled = False
+  eviction_help_winnebago_county.enabled = False
+  
+  if forms_to_assemble == "notice" or forms_to_assemble == "both": 
+    if eviction_reason == "overdue rent":
+      notice_nonpayment.enabled = True
+      affidavit_of_service.enabled = True
+    if eviction_reason == "lease violation":
+      notice_lease_violation.enabled = True
+      affidavit_of_service.enabled = True
+    if eviction_reason == "non-renewal":
+      notice_nonrenewal.enabled = True
+      affidavit_of_service.enabled = True
+    if eviction_reason == "no right to stay":
+      demand_for_possession.enabled = True
+      affidavit_of_service.enabled = True
+
+  if forms_to_assemble == "complaint" or forms_to_assemble == "both": 
+    eviction_complaint.enabled = True
+    eviction_summons.enabled = True
+    summons_bundle.enabled = True
+    if other_parties.number() > 1:
+      eviction_summons_2.enabled = True
+      summons_2_bundle.enabled = True
+      if other_parties.number() > 2:
+        eviction_summons_3.enabled = True
+        summons_3_bundle.enabled = True
+        if other_parties.number() > 3:
+          eviction_summons_4.enabled = True
+          summons_4_bundle.enabled = True
+          if other_parties.number() > 4:
+            eviction_summons_5.enabled = True
+            summons_5_bundle.enabled = True
+            if other_parties.number() > 5:
+              eviction_summons_blank.enabled = True
+              summons_blank_bundle.enabled = True
+    if unknown_occupants:
+      eviction_summons_unknown.enabled = True
+      summons_unknown_bundle.enabled = True
+    if attach_notice != "Yes" or attach_service != "Yes" or ( eviction_reason == "lease violation" and attach_lease != "Yes" ):
+      eviction_complaint_affidavit.enabled = True
+    if trial_court_index == -1:
+    #if property_county == "Cook":
+      eviction_help_cook_county.enabled = True
+    elif trial_court.address.county == "DuPage":
+    #elif property_county == "DuPage":
+      eviction_help_dupage_county.enabled = True
+    elif trial_court.address.county == "Winnebago":
+    #elif property_county == "Winnebago":
+      eviction_help_winnebago_county.enabled = True
+    else:
+      eviction_help_illinois.enabled = True
+---
+code: |
+  summons_bundle.title = "Summons"
+  summons_2_bundle.title = "Summons 2"
+  summons_3_bundle.title = "Summons 3"
+  summons_4_bundle.title = "Summons 4"
+  summons_5_bundle.title = "Summons 5"
+  summons_blank_bundle.title = "Summons (blank)"
+  summons_unknown_bundle.title = "Summons Unknown Occupants"
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="Download all forms")
+  - al_court_bundle: ALDocumentBundle.using(elements=[eviction_complaint, eviction_complaint_affidavit, eviction_summons, eviction_summons_2, eviction_summons_3, eviction_summons_4, eviction_summons_5, eviction_summons_unknown], filename="eviction_forms.pdf", title="Eviction forms")
+  - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons.pdf")  
+  - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_2.pdf")  
+  - summons_3_bundle: ALDocumentBundle.using(elements=[eviction_summons_3, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_3.pdf")  
+  - summons_4_bundle: ALDocumentBundle.using(elements=[eviction_summons_4, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_4.pdf")  
+  - summons_5_bundle: ALDocumentBundle.using(elements=[eviction_summons_5, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_5.pdf")  
+  - summons_blank_bundle: ALDocumentBundle.using(elements=[eviction_summons_blank, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_blank.pdf")  
+  - summons_unknown_bundle: ALDocumentBundle.using(elements=[eviction_summons_unknown, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_unknown_occupants.pdf")  
+
+---
+attachment:
+  variable name: eviction_instructions[i]
+  name: instructions
+  filename: eviction_instructions
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_instructions.pdf
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: notice_lease_violation[i]
+  name: notice
+  filename: notice
+  skip undefined: True
+  editable: False
+  pdf template file: notice_lease_violation.pdf
+  fields:
+      - "tenants": ${ other_parties.full_names() }
+      - "property_street_address": ${ other_parties[0].address.address }
+      - "property_unit": ${ other_parties[0].address.unit }
+      - "property_address_csz": ${ other_parties[0].address.line_two() }
+      - "lease_violations": ${ lease_violation_details }
+      - "property_street_address__2": ${ other_parties[0].address.address }
+      - "property_unit__2": ${ other_parties[0].address.unit }
+      - "property_address_csz__2": ${ other_parties[0].address.line_two() }
+      - "cure_allowed_yes": ${ cure_allowed }
+      - "cure_period": ${ cure_period }
+      - "cure_allowed_no": ${ cure_allowed == False }
+      - "lease_end_period": ${ lease_end_period }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+---
+attachment:
+  variable name: notice_nonpayment[i]
+  name: notice
+  filename: notice
+  skip undefined: True
+  editable: False
+  pdf template file: notice_nonpayment.pdf
+  fields:
+      - "tenants": ${ other_parties.full_names() }
+      - "property_street_address": ${ other_parties[0].address.address }
+      - "property_unit": ${ other_parties[0].address.unit }
+      - "property_address_csz": ${ other_parties[0].address.line_two() }
+      - "rent_owed": ${ thousands(rent_owed, show_decimals=True) }
+      - "property_street_address__2": ${ other_parties[0].address.address }
+      - "property_unit__2": ${ other_parties[0].address.unit }
+      - "property_address_csz__2": ${ other_parties[0].address.line_two() }
+      - "five_day_notice_checkbox": ${ True if notice_period == 5 else False }
+      - "other_notice_checkbox": ${ True if notice_period != 5 else False }
+      - "notice_period": ${ notice_period if notice_period != 5 else "" }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+---
+attachment:
+  variable name: notice_nonrenewal[i]
+  name: notice
+  filename: notice
+  skip undefined: True
+  editable: False
+  pdf template file: notice_nonrenewal.pdf
+  fields:
+      - "tenants": ${ other_parties.full_names() }
+      - "property_street_address": ${ other_parties[0].address.address }
+      - "property_unit": ${ other_parties[0].address.unit }
+      - "property_address_csz": ${ other_parties[0].address.line_two() }
+      - "lease_end": ${ lease_end_date }
+      - "property_street_address__2": ${ other_parties[0].address.address }
+      - "property_unit__2": ${ other_parties[0].address.unit }
+      - "property_address_csz__2": ${ other_parties[0].address.line_two() }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+---
+attachment:
+  variable name: demand_for_possession[i]
+  name: demand
+  filename: demand
+  skip undefined: True
+  editable: False
+  pdf template file: demand_for_possession.pdf
+  fields:
+      - "tenants": ${ other_parties.full_names() }
+      - "property_street_address": ${ other_parties[0].address.address }
+      - "property_unit": ${ other_parties[0].address.unit }
+      - "property_address_csz": ${ other_parties[0].address.line_two() }
+      - "property_street_address__2": ${ other_parties[0].address.address }
+      - "property_unit__2": ${ other_parties[0].address.unit }
+      - "property_address_csz__2": ${ other_parties[0].address.line_two() }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+---
+attachment:
+  variable name: affidavit_of_service[i]
+  name: affidavit
+  filename: affidavit
+  skip undefined: True
+  editable: True
+  pdf template file: affidavit_of_service.pdf
+  fields:
+      - "fake": ${ "" }      
+---
+attachment:
+  variable name: eviction_complaint[i]
+  name: complaint
+  filename: complaint
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_complaint.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "property_address_full": ${ other_parties[0].address.on_one_line(bare=True) }
+      - "rent_checkbox": ${ True if eviction_reason == "overdue rent" else False }
+      - "rent_start_date": ${ rent_owed_start if eviction_reason == "overdue rent" else "" }
+      - "rent_end_date": ${ rent_owed_end if eviction_reason == "overdue rent" else "" }
+      - "rent_owed_amount": ${ thousands(rent_owed, show_decimals=True)  if eviction_reason == "overdue rent" else "" }
+      - "nonrenewal_checkbox": ${ True if eviction_reason == "non-renewal" else False }
+      - "lease_violation_checkbox": ${ True if eviction_reason == "lease violation" else False }
+      - "lease_violation_explanation": ${ lease_violation_details if eviction_reason == "lease violation" else ""}
+      - "trespass_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "trespass" else False }
+      - "overstayed_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "overstay" else False }
+      - "past_due_rent_checkbox": ${ past_rent_requested }
+      - "past_due_rent_amount": ${ thousands(past_rent_due, show_decimals=True) if past_rent_requested else "" }
+      - "use_occupancy_checkbox": ${ use_and_occupancy }
+      - "attorney_fees_checkbox": ${ attorneys_fees }
+      - "notice_attach_checkbox": ${ True if attach_notice == "Yes" else False }
+      - "service_attach_checkbox": ${ True if attach_service == "Yes" else False }
+      - "lease_attach_checkbox": ${ True if attach_lease == "Yes" else False }
+      - "affidavit_no_attach_checkbox": ${ True if attach_notice == "No" or attach_service == "No" or attach_lease == "No" or attach_other == "No" else "" }
+      - "other_attach_checkbox": ${ True if attach_other == "Yes" else False }
+      - "other_supporting_documents": ${ other_attachments }
+      - "no_docs_attach_checkbox": ${ "" }
+      - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+---
+attachment:
+  variable name: eviction_complaint_affidavit[i]
+  name: complaint
+  filename: complaint
+  skip undefined: True
+  editable: False
+  pdf template file: affidavit_docs_not_attached.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "notice_checkbox": ${ attach_notice == "No" }
+      - "notice_lost_checkbox": ${ notice_lost if attach_notice == "No" else "" }
+      - "notice_not_required_checkbox": ${ notice_not_required if attach_notice == "No" else "" }
+      - "notice_other_checkbox": ${ notice_not_attached_other if attach_notice == "No" else "" }
+      - "notice_other_reason": ${ notice_not_attached_other_reason if (notice_not_attached_other and attach_notice == "No") else "" }
+      - "service_checkbox": ${ attach_service == "No" }
+      - "service_lost_checkbox": ${ service_lost if attach_service == "No" else "" }
+      - "notice_not_required_checkbox__2": ${ service_not_required if attach_service == "No" else "" }
+      - "service_other_checkbox": ${ service_not_attached_other if attach_service == "No" else "" }
+      - "service_other_reason": ${ service_not_attached_other_reason if (service_not_attached_other and attach_service == "No") else "" }
+      - "lease_checkbox": ${ attach_lease == "No" }
+      - "lease_not_required_checkbox": ${ lease_not_required if attach_lease == "No" else "" }
+      - "lease_none_checkbox": ${ lease_not_written if attach_lease == "No" else "" }
+      - "lease_lost_checkbox": ${ lease_lost if attach_lease == "No" else "" }
+      - "lease_other_checkbox": ${ lease_not_attached_other if attach_lease == "No" else "" }
+      - "lease_other_reason": ${ lease_not_attached_other_reason if (lease_not_attached_other and attach_lease == "No") else "" }
+      - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+
+---
+attachment:
+  variable name: eviction_summons[i]
+  name: summons
+  filename: summons
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      #old - "county": ${ other_parties[0].address.county.lower().replace(' county', '').upper() }
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ other_parties[0].name.full(middle="full") }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
+      - "tenant_email": ${ other_parties[0].email }
+      - "tenant_name__2": ${ other_parties[0].name.full(middle="full") if other_parties[0].has_alt_address else "" }
+      - "alt_service_address_street": ${ other_parties[0].alt_address.line_one(bare=True) if other_parties[0].has_alt_address else "" }
+      - "alt_service_address_csz": ${ other_parties[0].alt_address.line_two()  if other_parties[0].has_alt_address else ""}
+      - "alt_tenant_phone": ${ phone_number_formatted(other_parties[0].mobile_number) if other_parties[0].has_alt_address else "" }
+      - "alt_tenant_email": ${ other_parties[0].alt_email if other_parties[0].has_alt_address else "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_2[i]
+  name: summons_2
+  filename: summons_2
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ other_parties[1].name.full(middle="full") }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ phone_number_formatted(other_parties[1].phone_number) }
+      - "tenant_email": ${ other_parties[1].email }
+      - "tenant_name__2": ${ other_parties[1].name.full(middle="full") if other_parties[1].has_alt_address else "" }
+      - "alt_service_address_street": ${ other_parties[1].alt_address.line_one(bare=True) if other_parties[1].has_alt_address else "" }
+      - "alt_service_address_csz": ${ other_parties[1].alt_address.line_two()  if other_parties[1].has_alt_address else ""}
+      - "alt_tenant_phone": ${ phone_number_formatted(other_parties[1].mobile_number) if other_parties[1].has_alt_address else "" }
+      - "alt_tenant_email": ${ other_parties[1].alt_email if other_parties[1].has_alt_address else "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_3[i]
+  name: summons_3
+  filename: summons_3
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ other_parties[2].name.full(middle="full") }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ phone_number_formatted(other_parties[2].phone_number) }
+      - "tenant_email": ${ other_parties[2].email }
+      - "tenant_name__2": ${ other_parties[2].name.full(middle="full") if other_parties[2].has_alt_address else "" }
+      - "alt_service_address_street": ${ other_parties[2].alt_address.line_one(bare=True) if other_parties[2].has_alt_address else "" }
+      - "alt_service_address_csz": ${ other_parties[2].alt_address.line_two()  if other_parties[2].has_alt_address else ""}
+      - "alt_tenant_phone": ${ phone_number_formatted(other_parties[2].mobile_number) if other_parties[2].has_alt_address else "" }
+      - "alt_tenant_email": ${ other_parties[2].alt_email if other_parties[2].has_alt_address else "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_4[i]
+  name: summons_4
+  filename: summons_4
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ other_parties[3].name.full(middle="full") }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ phone_number_formatted(other_parties[3].phone_number) }
+      - "tenant_email": ${ other_parties[3].email }
+      - "tenant_name__2": ${ other_parties[3].name.full(middle="full") if other_parties[3].has_alt_address else "" }
+      - "alt_service_address_street": ${ other_parties[3].alt_address.line_one(bare=True) if other_parties[3].has_alt_address else "" }
+      - "alt_service_address_csz": ${ other_parties[3].alt_address.line_two()  if other_parties[3].has_alt_address else ""}
+      - "alt_tenant_phone": ${ phone_number_formatted(other_parties[3].mobile_number) if other_parties[3].has_alt_address else "" }
+      - "alt_tenant_email": ${ other_parties[3].alt_email if other_parties[3].has_alt_address else "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_5[i]
+  name: summons_5
+  filename: summons_5
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ other_parties[4].name.full(middle="full") }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ phone_number_formatted(other_parties[4].phone_number) }
+      - "tenant_name__2": ${ other_parties[4].name.full(middle="full") if other_parties[4].has_alt_address else "" }
+      - "alt_service_address_street": ${ other_parties[4].alt_address.line_one(bare=True) if other_parties[4].has_alt_address else "" }
+      - "alt_service_address_csz": ${ other_parties[4].alt_address.line_two()  if other_parties[4].has_alt_address else ""}
+      - "alt_tenant_phone": ${ phone_number_formatted(other_parties[4].mobile_number) if other_parties[4].has_alt_address else "" }
+      - "alt_tenant_email": ${ other_parties[4].alt_email if other_parties[4].has_alt_address else "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_unknown[i]
+  name: summons_unknown
+  filename: summons_unknown
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_summons.pdf
+  fields:
+      - "county": ${ trial_court.address.county.upper() }
+      - "plaintiffs": ${ users.full_names() }
+      - "defendants": ${ other_parties.full_names() }
+      - "unknown_checkbox": ${ unknown_occupants }
+      - "tenant_name__1": ${ "Unknown Occupants" }
+      - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
+      - "service_address_csz": ${ other_parties[0].address.line_two() }
+      - "tenant_phone": ${ "" }
+      - "tenant_email": ${ "" }
+      - "tenant_name__2": ${ "" }
+      - "alt_service_address_street": ${ "" }
+      - "alt_service_address_csz": ${ "" }
+      - "alt_tenant_phone": ${ "" }
+      - "alt_tenant_email": ${ "" }
+      - "sheriff_checkbox": ${ True }
+      - "sheriff_outside_il_checkbox": ${  }
+      - "sheriff_county_state": ${  }
+      - "landlord_checkbox": ${ True }
+      - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
+      - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
+      - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
+      - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
+      - "hearing_courtroom": ${ courtroom if has_court_date else '' }
+      - "courthouse_address": ${ courthouse_info }
+      - "clerk_phone": ${ trial_court.phone }
+      - "clerk_website": ${ trial_court.website }
+      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
+      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
+      - "landlord_email": ${ users[0].email }
+      - "county__2": ${ trial_court.address.county.upper() }
+      - "plaintiffs__2": ${ users.full_names() }
+      - "defendants__2": ${ other_parties.full_names() }
+      - "unknown_checkbox__2": ${ unknown_occupants }
+---
+attachment:
+  variable name: eviction_summons_blank[i]
+  name: summons_blank
+  filename: summons_blank
+  skip undefined: True
+  editable: True
+  pdf template file: eviction_summons_blank.pdf
+  fields:
+      - "county": ${ "" }
+---
+attachment:
+  variable name: eviction_help_illinois[i]
+  name: eviction_help_illinois
+  filename: eviction_help_illinois
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_help_illinois.pdf
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: eviction_help_cook_county[i]
+  name: eviction_help_cook_county
+  filename: eviction_help_cook_county
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_help_cook_county.pdf
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: eviction_help_dupage_county[i]
+  name: eviction_help_dupage_county
+  filename: eviction_help_dupage_county
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_help_dupage_county.pdf
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: eviction_help_winnebago_county[i]
+  name: eviction_help_winnebago_county
+  filename: eviction_help_winnebago_county
+  skip undefined: True
+  editable: False
+  pdf template file: eviction_help_winnebago_county.pdf
+  fields:
+      - "fake": ${ "" }
+---
+
+############### Review page
+---
+id: review screen
+event: review_answers
+question: |
+  Review screen
+subquestion: |
+  Edit your answers below.
+review: 
+  - Edit:
+      - other_parties[0].address.address
+      - recompute:
+        - trial_court_index
+        - trial_court
+    button: |
+      **Property address:**
+      % if " county" in other_parties[0].address.county.lower():
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county }
+      % else:
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ property_county } County
+      % endif
+
+  #- Edit: 
+  #    - other_parties[0].address.address
+  #    - recompute:
+  #      - trial_court_index
+  #      - trial_court
+  #  button: |
+  #    **County where the property is located:**
+  #    % if trial_court_index == -1:
+  #    ${ "Cook" }
+  #    % else:
+  #    ${ trial_court.address.county }
+  #    % endif
+  
+  - Edit: is_owner_occupied
+    button: |
+      **Landlord lives in property:**
+      ${ word(yesno(is_owner_occupied)) } 
+  - Edit: number_of_units
+    button: |
+      **Number of units in property:**
+      ${ number_of_units }
+  - Edit: is_ordinance_property
+    button: |
+      **Property type could be covered by local landlord-tenant law:**
+      ${ word(yesno(is_ordinance_property)) }
+  - Edit: other_parties.revisit
+    button: |
+      **Tenants: (Edit to change names and contact info)**
+
+      % for my_var in other_parties:
+        * ${ my_var.name.full(middle="full") }
+      % endfor
+  - Edit: forms_to_assemble
+    button: |
+      **Forms you want to make (Notice, Complaint, or both):**
+      ${ forms_to_assemble }
+  - Edit: eviction_reason
+    button: |
+      **Eviction reason:**
+      ${eviction_reason}
+  - Edit: rent_owed
+    button: |
+      **Rent owed:** $
+      ${ thousands(rent_owed, show_decimals=True) }
+    show if: eviction_reason == "overdue rent"
+  - Edit: rent_owed_start
+    button: |
+      **Rent owed from (start date):**
+      ${ rent_owed_start }
+    show if: eviction_reason == "overdue rent"
+  - Edit: rent_owed_end
+    button: |
+      **Rent owed to (end date):**
+      ${ rent_owed_end }
+    show if: eviction_reason == "overdue rent"
+  - Edit: notice_period
+    button: |
+      **Number of days tenant has to pay rent:**
+      ${ notice_period }
+    show if: eviction_reason == "overdue rent"
+  - Edit: lease_violation_details
+    button: |
+      **How tenant violated the lease:**
+      ${lease_violation_details}
+    show if: eviction_reason == "lease violation"
+  - Edit: cure_allowed
+    button: |
+      **Tenant has right to fix lease violation:**
+      ${ word(yesno(cure_allowed)) }
+    show if: eviction_reason == "lease violation"
+  - Edit: cure_period
+    button: |
+      % if cure_allowed == True:
+      **Number of days tenant has to fix violation:**
+      ${ cure_period }
+      % else:
+      **Number of days until lease will end:**
+      ${ lease_end_period }
+      % endif
+    show if: eviction_reason == "lease violation"
+  - Edit: no_right_to_stay_type
+    button: |
+      **How people with no right to stay on property arrived:**
+      ${ no_right_to_stay_type }
+    show if: eviction_reason == "no right to stay"
+  - Edit: lease_end_date
+    button: |
+      **Lease end date:**
+      ${ lease_end_date }
+    show if: eviction_reason == "non-renewal"
+  - Edit: past_rent_requested
+    button: |
+      **Past rent owed:**
+      ${ word(yesno(past_rent_requested)) }
+  - Edit: past_rent_due
+    button: |
+      **Past rent amount:**
+      ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: use_and_occupancy
+    button: |
+      **Tenant should pay future rent during eviction case:**
+      ${ word(yesno(use_and_occupancy)) }      
+  - Edit: attorneys_fees
+    button: |
+      **Tenant should pay attorneys' fees (if applicable):**
+      ${ word(yesno(attorneys_fees)) }      
+  - Edit: attach_notice
+    button: |
+      **Attaching *Notice* to *Eviction Complaint*:**
+      ${ attach_notice }   
+  - Edit: notice_lost
+    button: |
+      ***Notice* not attached because it is lost:**
+      ${ word(yesno(notice_lost)) }
+    show if: attach_notice == "No"
+  - Edit: notice_not_required
+    button: |
+      ***Notice* not attached because it is not required:**
+      ${ word(yesno(notice_not_required)) }   
+    show if: attach_notice == "No"
+  - Edit: notice_not_attached_other
+    button: |
+      ***Notice* not attached for other reason:**
+      ${ word(yesno(notice_not_attached_other)) }   
+    show if: attach_notice == "No"
+  - Edit: notice_not_attached_other_reason
+    button: |
+      **Reason *Notice* not attached to *Eviction Complaint*:**
+      ${ notice_not_attached_other_reason }   
+    show if: attach_notice == "No" and notice_not_attached_other == True
+  - Edit: attach_service
+    button: |
+      **Attaching Affidavit of Service to *Eviction Complaint*:**
+      ${ attach_service }   
+  - Edit: service_lost
+    button: |
+      **Affidavit of Service not attached because it is lost:**
+      ${ word(yesno(service_lost)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_required
+    button: |
+      **Affidavit of Service not attached because it is not required:**
+      ${ word(yesno(service_not_required)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_attached_other
+    button: |
+      **Affidavit of Service not attached for other reason:**
+      ${ word(yesno(service_not_attached_other)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_attached_other_reason
+    button: |
+      **Reason Affidavit of Service not attached to *Eviction Complaint*:**
+      ${ service_not_attached_other_reason }   
+    show if: attach_service == "No" and service_not_attached_other == True
+  - Edit: attach_lease
+    button: |
+      **Attaching written lease to *Eviction Complaint*:**
+      ${ attach_lease }   
+  - Edit: lease_lost
+    button: |
+      **Written lease not attached because it is lost:**
+      ${ word(yesno(lease_lost)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_written
+    button: |
+      **Written lease not attached because there is none:**
+      ${ word(yesno(lease_not_written)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_required
+    button: |
+      **Written lease not attached because it is not required:**
+      ${ word(yesno(lease_not_required)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_attached_other
+    button: |
+      **Written lease not attached for other reason:**
+      ${ word(yesno(lease_not_attached_other)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_attached_other_reason
+    button: |
+      **Reason written lease not attached to *Eviction Complaint*:**
+      ${ lease_not_attached_other_reason }   
+    show if: attach_lease == "No" and lease_not_attached_other == True
+  - Edit: attach_other
+    button: |
+      **Attaching other documents to *Eviction Complaint*:**
+      ${ attach_other }   
+  - Edit: other_attachments
+    button: |
+      **Description of other documents attaching to *Eviction Complaint*:**
+      ${ other_attachments }
+    show if: attach_other == "Yes"
+  - Edit: unknown_occupants
+    button: |
+      **Include "Unknown Occupants" on *Eviction Complaint*:**
+      ${ word(yesno(unknown_occupants)) }
+  - Edit: users[0].name.first
+    button: |
+      **Your name:**
+      ${users[0].name.full(middle="full")}
+  - Edit: users[0].address.address
+    button: |
+      **Your address:**
+      ${ users[0].address.on_one_line(bare=True) }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone number:**
+      ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].email
+    button: |
+      **Your email:**
+      ${ users[0].email }
+    show if: users[0].email_notice
+  - Edit: cook_district
+    button: |
+      **Cook County courthouse:**
+      % if cook_district == "15":
+      ${ "Daley Center, 50 W. Washington Street, Chicago" }
+      % elif cook_district == "16":
+      ${ "Second Municipal District, 5600 Old Orchard Road, Skokie" }
+      % elif cook_district == "17":
+      ${ "Third Municipal District, 2121 Euclid Avenue, Rolling Meadows" }
+      % elif cook_district == "18":
+      ${ "Fourth Municipal District, 1500 Maybrook Drive, Maywood" }
+      % elif cook_district == "19":
+      ${ "Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview" }
+      % else:
+      ${ "Sixth Municipal District, 16501 South Kedzie Parkway, Markham" }
+      % endif      
+    show if: trial_court_index == -1
+  - Edit: e_signature
+    button: |
+      **Do you want to e-sign you *Eviction Complaint*?**
+      ${ word(yesno(e_signature)) }
+  - Edit: has_court_date
+    button: |
+      **Do you already have court date from the clerk?**
+      ${ word(yesno(has_court_date)) }
+  - Edit: hearing_date
+    button: |
+      **Court date on:**
+      ${ hearing_date } at ${ format_time(hearing_time, "h:mm a") }
+    show if: has_court_date
+  - Edit: courtroom
+    button: |
+      **Courtroom:**
+      ${ courtroom }
+    show if: has_court_date
+
+---
+continue button field: other_parties.revisit
+question: |
+    Edit the tenants
+subquestion: |
+  ${ other_parties.table }
+
+  ${ other_parties.add_action() }
+---
+table: other_parties.table
+rows: other_parties
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Contact and service info: |
+      action_button_html(url_action(row_item.attr_name("review_tenant_info")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+continue button field: x.review_tenant_info
+generic object: ALIndividual
+question: |
+  Edit ${ x.name.full(middle="full") }'s information
+review: 
+  - Edit: x.name.first
+    button: |
+      **Tenant name:**
+      ${ x.name.full(middle="full")  }
+  - Edit: x.phone_number
+    button: |
+      **${ x.name.full(middle="full") }'s phone number:**
+      ${ phone_number_formatted(x.phone_number) }
+  - Edit: x.email
+    button: |
+      **${ x.name.full(middle="full") }'s email:**
+      ${ x.email }
+  - Edit: x.alt_address.address
+    button: |
+      **${ x.name.full(middle="full") }'s alternate address:**
+      ${ x.alt_address.on_one_line(bare=True) }
+    show if: x.has_alt_address
+  - Edit: x.mobile_number
+    button: |
+      **${ x.name.full(middle="full") }'s alternate phone number:**
+      ${ phone_number_formatted(x.mobile_number) }
+    show if: x.has_alt_address
+  - Edit: x.alt_email
+    button: |
+      **${ x.name.full(middle="full") }'s alternate email:**
+      ${ x.alt_email }
+    show if: x.has_alt_address   

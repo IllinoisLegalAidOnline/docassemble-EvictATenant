@@ -1,0 +1,146 @@
+metadata:
+  title: Evict a tenant
+  short title: Evict a tenant
+  comment: This program helps you make notice and eviction complaint forms to evict a tenant in Illinois.
+  authors:
+    - Matt Newsted
+    - Vivian McNaughton
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ILAO:ilao-interview-framework.yml
+  - docassemble.ILAO:shared-basic-questions.yml
+  - ilao_footer_test.yml
+---
+objects:
+  - users: ALPeopleList.using(there_are_any=True)
+  - other_parties: ALPeopleList.using(there_are_any=True)
+  - other_parties[i].alt_address: ALAddress
+  - all_courts: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+  #- court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+---
+code: |
+  al_form_type = 'new_case'
+  user_ask_role = 'plaintiff'
+---
+# Road map
+sections:
+  - review_answers: Review your answers
+---
+# interview order block
+mandatory: True
+code: |
+  ilao_easy_form_title = "Evict a tenant"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/evict-tenant"
+  form_name = "Eviction"
+  other_parties[0].address.address
+  #case_county
+  if trial_court_index == -1:
+    cook_district
+  show_variables
+  courthouse_info
+
+---
+id: show variables
+question: Show me
+continue button field: show_variables
+---
+id: rental property address
+question: |
+  What is the address of the rental property?
+fields:
+  - Street address: other_parties[0].address.address
+    address autocomplete: True
+  - Address line 2: other_parties[0].address.unit
+    required: False
+  - City: other_parties[0].address.city
+  - State: other_parties[0].address.state
+    code: |
+      states_list()
+  - ZIP code: other_parties[0].address.zip
+  - County: other_parties[0].address.county
+---
+code: |
+  allowed_courts = ['Circuit']
+---
+id: courthouse information
+event: courthouse_info
+question: |
+  Courthouse info
+subquestion: |
+  County from court_list: ${ trial_court.address.county }
+  
+  County from address lookup: ${ other_parties[0].address.county }
+  
+  Trial court index: ${ trial_court_index }
+  
+  Court code: ${ trial_court.court_code }
+  
+  Court name: ${ trial_court.name }
+  
+  Court website: ${ trial_court.website }
+---
+depends on:
+  - trial_court_index
+code: |
+  if trial_court_index == -1:
+    trial_court = all_courts.as_court('trial_court', cook_district)
+    property_county = "Cook"
+  else:
+    trial_court = all_courts.as_court('trial_court', trial_court_index)
+    property_county = trial_court.address.county
+---
+id: county selection
+continue button field: case_county
+question: |
+  In which county is the property at ${ other_parties[0].address.on_one_line(bare=True) }?
+subquestion: |
+  This is where you will file your eviction case.  
+fields:
+  - no label: trial_court_index
+    code: |
+      court_county_lookup()
+help:
+  label: How do I look up the county?
+  content: |
+    You can use the National Association of Counties' [County Explorer](https://ce.naco.org/?find=true) to find the county.
+---
+code: |
+  def court_county_lookup(lowercase=False):
+    all_court_counties = all_courts._load_courts()['address_county'].items()
+    filtered_courts = [(-1, "cook")] if lowercase else [(-1, "Cook")]
+    for court in all_court_counties:
+      if court[1] != "Cook":
+        court_name = court[1].lower() if lowercase else court[1]
+        filtered_courts.append((court[0],court_name))
+    return sorted( filtered_courts, key=lambda y: y[1])
+---
+code: |
+  #county_courts = all_courts.filter(courts[users[0].address.county.lower().rstrip(" county").title()], column='address_county')
+  
+  county_name = other_parties[0].address.county.lower()
+  if county_name.endswith(" county"):
+    county_name = other_parties[0].address.county.lower()[0:-7]
+
+  #county_courts = list(all_courts.filter_courts([county_name], column='address_county_lowercase') )
+  county_courts = [county for county in court_county_lookup(lowercase=True) if county[1]==county_name]
+
+  if len(county_courts) < 1:
+    log("We can't find your county!", 'warning')
+    #reconsider('other_parties[0].address.county')
+  else:
+    trial_court_index = county_courts[0][0]
+---
+id: Cook County district
+question: |
+  Where do you want to file your eviction case?
+subquestion: |
+  Pick a location that is convenient for you.
+field: cook_district
+choices:
+  - Daley Center, 50 W. Washington Street, Chicago: 15
+  - Second Municipal District, 5600 Old Orchard Road, Skokie: 16
+  - Third Municipal District, 2121 Euclid Avenue, Rolling Meadows: 17
+  - Fourth Municipal District, 1500 Maybrook Drive, Maywood: 18
+  - Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview: 19
+  - Sixth Municipal District, 16501 South Kedzie Parkway, Markham: 20
