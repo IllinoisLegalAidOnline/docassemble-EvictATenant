@@ -2,6 +2,8 @@ metadata:
   title: Evict a tenant
   short title: Evict a tenant
   comment: This program helps you make notice and eviction complaint forms to evict a tenant in Illinois.
+  authors:
+    - Matt Newsted
 ---
 include:
   - docassemble.AssemblyLine:assembly_line.yml
@@ -21,7 +23,12 @@ code: |
 ---
 # Road map
 sections:
-  - review_answers: Review your answers
+  - section_intro: Start
+  - section_property_info: Basic info
+  - section_eviction_details: Eviction details
+  - section_form_info: Eviction court forms (optional)
+  - section_about_you: About you
+  - section_download: Download
 ---
 # interview order block
 mandatory: True
@@ -29,10 +36,12 @@ code: |
   ilao_easy_form_title = "Evict a tenant"
   ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/evict-tenant"
   form_name = "Eviction"
+  nav.set_section('section_intro')
   sees_nav_bar
   how_to_use
   accept_terms
   eviction_overview
+  nav.set_section('section_property_info')
   if other_parties[0].address.state != "IL":
     not_illinois_property
   if landlord_or_owner == False:
@@ -51,12 +60,18 @@ code: |
     if is_owner_occupied:
       number_of_units
     is_ordinance_property
+
+  if eviction_reason == "none":
+    not_valid_reason
     
+  other_parties.gather()
+
+  nav.set_section('section_eviction_details')
+  
   forms_to_assemble
   property_county
   #trial_court    
-  if eviction_reason == "none":
-    not_valid_reason
+
   if eviction_reason == "no right to stay" and forms_to_assemble != "notice":
     no_right_to_stay_type
   if eviction_reason == "overdue rent":
@@ -80,8 +95,7 @@ code: |
     else:
       nonrenewal_notice_warning
       
-  other_parties.gather()
-  
+  nav.set_section('section_form_info')
   if forms_to_assemble != "notice":
     unknown_occupants
     past_rent_requested
@@ -90,16 +104,16 @@ code: |
       notice_lost
     if attach_service == "No":
       service_lost
-    if eviction_reason == "lease violation":
-      attach_lease
-      if attach_lease == "No":
-        lease_lost
+    #if eviction_reason == "lease violation":
+      #attach_lease
+    if attach_lease == "No":
+      lease_lost
     if attach_other == "Yes":
       other_attachments
-    if eviction_reason == "lease violation":
-      if attach_lease == "I don't know":
-        attachments_unsure
-    if attach_notice == "I don't know" or attach_service == "I don't know" or attach_other == "I don't know":
+    #if eviction_reason == "lease violation":
+      #if attach_lease == "I don't know":
+        #attachments_unsure
+    if attach_notice == "I don't know" or attach_service == "I don't know" or attach_other == "I don't know" or attach_lease == "I don't know":
       attachments_unsure
       
     summons_intro
@@ -116,14 +130,15 @@ code: |
     courthouse_info
     if has_court_date:
       hearing_date
-   
+    e_signature
+
+  nav.set_section('section_about_you')
   users.gather(number=1)
   users[0].address.address
   users[0].phone_number
   users[0].email
   
-  if forms_to_assemble != "notice":
-    e_signature
+  nav.set_section('section_download')
   get_docs_screen
 
 ---
@@ -480,6 +495,8 @@ question: |
 subquestion: |
   This can be an oral or written lease.
   
+  If your *Notice* does not give your tenant the required number of days advance notice, and you file an eviction case, it may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
+  
   ${ collapse_template(non_renewal_notice_period_help) } 
 fields:
   - Lease end date: lease_end_date
@@ -490,11 +507,14 @@ template: non_renewal_notice_period_help
 subject: |
   **What if the lease ends soon or has already ended?**
 content: |
-  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must give tenants notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends. Note: Your lease agreement may require a longer notice period.
+  Based on your answers, ${ applicable_law }. To give your tenant ${ rec_renew_period } days advance notice, you might need to extend the lease end date. You can do this by creating a month-to-month tenancy.
   
-  To give your tenant ${ rec_renew_period } days advance notice, you might need to extend the lease end date.
+  A month-to-month tenancy has the same terms as the original lease. However, the lease term is just one month long. It can renew each month if the tenant pays rent. If the lease ends soon or already ended, a month-to-month tenancy can give you enough time to give ${ rec_renew_period } days advance notice.
   
-  If your *Notice* does not give your tenant the required number of days advance notice, and you file an eviction case, it may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.  
+  Note: creating a month-to-month tenancy will extend the lease. You may want to talk with a lawyer to discuss your options. Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+  
+  If you want to make a month-to-month tenancy, enter a date that adds a month or more to the current lease end date. For example, let's say you need to give 30 days advance notice. If today is July 10th, and the lease ends July 31st, enter a lease end date of August 31st. If you need to give more time, extend the lease end date. For 60 days notice from July 10th, the end date would be September 30th. For 90 days notice, the end date would be October 31st.
+
 ---
 id: non-renewal notice
 continue button field: nonrenewal_notice
@@ -544,7 +564,7 @@ fields:
   - What happened: lease_violation_details
     input type: area
     rows: 3
-    maxlength: 300
+    maxlength: 425
 ---
 id: other remedies
 question: |
@@ -556,6 +576,9 @@ fields:
     datatype: yesnowide
     help: |
       You can only ask for past rent if you had a lease agreement with the people you are evicting and they still owe rent.
+      % if eviction_reason == "overdue rent":
+      This would be rent owed in addition to the $${ thousands(rent_owed, show_decimals=True) } owed.
+      % endif
   - Amount: past_rent_due
     datatype: currency
     min: 1
@@ -665,7 +688,7 @@ subquestion: |
   
   * The *Notice* or *Demand*,
   * An *Affidavit of Service of a Demand or Notice*,
-  * The written lease or relevant parts (if evicting for a lease violation), and
+  * The written lease or relevant parts, if there is a written lease, and
   * Other documents that support your *Eviction Complaint*.
 ---
 id: attach notice
@@ -715,7 +738,13 @@ template: affidavit_of_service_help
 subject: |
   **What is an Affidavit of service?**
 content: |  
-  An **Affidavit of service** is a written statement signed under oath which describes where, when, and how a person received court documents.
+  An **Affidavit of service** is a written statement signed under oath which describes where, when, and how a person received court documents. In an eviction, it is filled out by the person who delivered the Demand or Notice to the tenant.
+  
+  % if forms_to_assemble == "both":
+  This program will make an *Affidavit of Service of a Demand or Notice* you can use.
+  % else:
+  You can find an *Affidavit of Service of a Demand or Notice* on the **[Illinois Courts website](https://www.illinoiscourts.gov/forms/approved-forms/forms-approved-forms-circuit-court/eviction)**.
+  % endif
 ---
 id: reasons why not attaching service
 question: |
@@ -739,7 +768,7 @@ id: attach lease
 question: |
   Will you attach the written lease or the relevant part to your Eviction Complaint?
 subquestion: |
-  If you are evicting a tenant because they violated the lease, you must attach the written lease or the relevant parts of it.
+  If you have a written lease with the tenant, you must attach the written lease or the relevant parts of it.
 field: attach_lease
 choices:
   - Yes: Yes
@@ -792,7 +821,7 @@ fields:
 id: attachments unsure
 continue button field: attachments_unsure
 question: |
-  Not sure about attachments to your Eviction Complaint
+  Completing your Eviction Complaint
 subquestion: |
   Before you file your *Eviction Complaint*, make sure you fill in:
   
@@ -1375,9 +1404,25 @@ question: |
   Do you want to add your e-signature to your Eviction Complaint?
 subquestion: |
   If you do not add your e-signature, you can sign your paper form later.
+
+  ${ collapse_template(signature_help) }  
+
 fields:
   - "Add e-signature?": e_signature
     datatype: yesnoradio
+---
+template: signature_help
+subject: |
+  **What does it mean to sign the *Eviction Complaint*?**
+content: |  
+  By signing your *Eviction Complaint*, you are certifying that:
+  
+  * You read the document,
+  * You believe it to be true and correct, and
+  * You are not filing it for an improper purpose, such as to cause delay.
+
+  See **[Illinois Supreme Court Rule 137](https://www.illinoiscourts.gov/supreme-court-rules)** for more information.
+
 ---
 id: get docs screen
 event: get_docs_screen
@@ -1389,10 +1434,13 @@ subquestion: |
 
   Read the instructions to learn what to do with your forms.
 
+  % if forms_to_assemble != "complaint":
+  **Note:** Be sure to add the date and sign the Notice or Demand before you give it to the tenant. 
+  % endif
   % if forms_to_assemble != "notice":
   This program does not file your *Eviction Complaint* with the court. You will need to do this yourself. Learn about **[e-filing in Illinois](https://www.illinoiscourts.gov/eservices/efileil/)**.
   % endif
-
+  
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
   
   ${ al_user_bundle.download_list_html() }
@@ -1514,7 +1562,7 @@ code: |
     if unknown_occupants:
       eviction_summons_unknown.enabled = True
       summons_unknown_bundle.enabled = True
-    if attach_notice != "Yes" or attach_service != "Yes" or ( eviction_reason == "lease violation" and attach_lease != "Yes" ):
+    if attach_notice != "Yes" or attach_service != "Yes" or attach_lease != "Yes":
       eviction_complaint_affidavit.enabled = True
     if trial_court_index == -1:
     #if property_county == "Cook":
@@ -2309,11 +2357,11 @@ review:
     show if: trial_court_index == -1
   - Edit: e_signature
     button: |
-      **Do you want to e-sign you *Eviction Complaint*?**
+      **Do you want to e-sign your *Eviction Complaint*?**
       ${ word(yesno(e_signature)) }
   - Edit: has_court_date
     button: |
-      **Do you already have court date from the clerk?**
+      **Do you already have a court date from the clerk?**
       ${ word(yesno(has_court_date)) }
   - Edit: hearing_date
     button: |
@@ -2376,4 +2424,290 @@ review:
     button: |
       **${ x.name.full(middle="full") }'s alternate email:**
       ${ x.alt_email }
-    show if: x.has_alt_address   
+    show if: x.has_alt_address
+---
+id: property info review screen
+event: section_property_info
+question: |
+  Basic info
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit:
+      - other_parties[0].address.address
+      - recompute:
+        - trial_court_index
+        - trial_court
+    button: |
+      **Property address:**
+      % if " county" in other_parties[0].address.county.lower():
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county }
+      % else:
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ property_county } County
+      % endif
+  - Edit: is_owner_occupied
+    button: |
+      **Landlord lives in property:**
+      ${ word(yesno(is_owner_occupied)) } 
+  - Edit: number_of_units
+    button: |
+      **Number of units in property:**
+      ${ number_of_units }
+  - Edit: is_ordinance_property
+    button: |
+      **Property type could be covered by local landlord-tenant law:**
+      ${ word(yesno(is_ordinance_property)) }
+  - Edit: other_parties.revisit
+    button: |
+      % if eviction_reason == "no right to stay":
+      **Occupants: (Edit to change names and contact info)**
+      % else:
+      **Tenants: (Edit to change names and contact info)**
+      % endif
+
+      % for my_var in other_parties:
+        * ${ my_var.name.full(middle="full") }
+      % endfor
+---
+id: eviction details review screen
+event: section_eviction_details
+question: |
+  Eviction details
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: forms_to_assemble
+    button: |
+      **Forms you want to make (Notice, Complaint, or both):**
+      ${ forms_to_assemble }
+  - Edit: eviction_reason
+    button: |
+      **Eviction reason:**
+      ${eviction_reason}
+  - Edit: rent_owed
+    button: |
+      **Rent owed:** $
+      ${ thousands(rent_owed, show_decimals=True) }
+    show if: eviction_reason == "overdue rent"
+  - Edit: rent_owed_start
+    button: |
+      **Rent owed from (start date):**
+      ${ rent_owed_start }
+    show if: eviction_reason == "overdue rent"
+  - Edit: rent_owed_end
+    button: |
+      **Rent owed to (end date):**
+      ${ rent_owed_end }
+    show if: eviction_reason == "overdue rent"
+  - Edit: notice_period
+    button: |
+      **Number of days tenant has to pay rent:**
+      ${ notice_period }
+    show if: eviction_reason == "overdue rent"
+  - Edit: lease_violation_details
+    button: |
+      **How tenant violated the lease:**
+      ${lease_violation_details}
+    show if: eviction_reason == "lease violation"
+  - Edit: cure_allowed
+    button: |
+      **Tenant has right to fix lease violation:**
+      ${ word(yesno(cure_allowed)) }
+    show if: eviction_reason == "lease violation"
+  - Edit: cure_period
+    button: |
+      % if cure_allowed == True:
+      **Number of days tenant has to fix violation:**
+      ${ cure_period }
+      % else:
+      **Number of days until lease will end:**
+      ${ lease_end_period }
+      % endif
+    show if: eviction_reason == "lease violation"
+  - Edit: no_right_to_stay_type
+    button: |
+      **How people with no right to stay on property arrived:**
+      ${ no_right_to_stay_type }
+    show if: eviction_reason == "no right to stay"
+  - Edit: lease_end_date
+    button: |
+      **Lease end date:**
+      ${ lease_end_date }
+    show if: eviction_reason == "non-renewal"
+
+---
+id: eviction court forms review screen
+event: section_form_info
+question: |
+  Eviction court forms (optional)
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: past_rent_requested
+    button: |
+      **Past rent owed:**
+      ${ word(yesno(past_rent_requested)) }
+  - Edit: past_rent_due
+    button: |
+      **Past rent amount:**
+      ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: use_and_occupancy
+    button: |
+      **Tenant should pay future rent during eviction case:**
+      ${ word(yesno(use_and_occupancy)) }      
+  - Edit: attorneys_fees
+    button: |
+      **Tenant should pay attorneys' fees (if applicable):**
+      ${ word(yesno(attorneys_fees)) }      
+  - Edit: attach_notice
+    button: |
+      **Attaching *Notice* to *Eviction Complaint*:**
+      ${ attach_notice }   
+  - Edit: notice_lost
+    button: |
+      ***Notice* not attached because it is lost:**
+      ${ word(yesno(notice_lost)) }
+    show if: attach_notice == "No"
+  - Edit: notice_not_required
+    button: |
+      ***Notice* not attached because it is not required:**
+      ${ word(yesno(notice_not_required)) }   
+    show if: attach_notice == "No"
+  - Edit: notice_not_attached_other
+    button: |
+      ***Notice* not attached for other reason:**
+      ${ word(yesno(notice_not_attached_other)) }   
+    show if: attach_notice == "No"
+  - Edit: notice_not_attached_other_reason
+    button: |
+      **Reason *Notice* not attached to *Eviction Complaint*:**
+      ${ notice_not_attached_other_reason }   
+    show if: attach_notice == "No" and notice_not_attached_other == True
+  - Edit: attach_service
+    button: |
+      **Attaching Affidavit of Service to *Eviction Complaint*:**
+      ${ attach_service }   
+  - Edit: service_lost
+    button: |
+      **Affidavit of Service not attached because it is lost:**
+      ${ word(yesno(service_lost)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_required
+    button: |
+      **Affidavit of Service not attached because it is not required:**
+      ${ word(yesno(service_not_required)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_attached_other
+    button: |
+      **Affidavit of Service not attached for other reason:**
+      ${ word(yesno(service_not_attached_other)) }   
+    show if: attach_service == "No"
+  - Edit: service_not_attached_other_reason
+    button: |
+      **Reason Affidavit of Service not attached to *Eviction Complaint*:**
+      ${ service_not_attached_other_reason }   
+    show if: attach_service == "No" and service_not_attached_other == True
+  - Edit: attach_lease
+    button: |
+      **Attaching written lease to *Eviction Complaint*:**
+      ${ attach_lease }   
+  - Edit: lease_lost
+    button: |
+      **Written lease not attached because it is lost:**
+      ${ word(yesno(lease_lost)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_written
+    button: |
+      **Written lease not attached because there is none:**
+      ${ word(yesno(lease_not_written)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_required
+    button: |
+      **Written lease not attached because it is not required:**
+      ${ word(yesno(lease_not_required)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_attached_other
+    button: |
+      **Written lease not attached for other reason:**
+      ${ word(yesno(lease_not_attached_other)) }   
+    show if: attach_lease == "No"
+  - Edit: lease_not_attached_other_reason
+    button: |
+      **Reason written lease not attached to *Eviction Complaint*:**
+      ${ lease_not_attached_other_reason }   
+    show if: attach_lease == "No" and lease_not_attached_other == True
+  - Edit: attach_other
+    button: |
+      **Attaching other documents to *Eviction Complaint*:**
+      ${ attach_other }   
+  - Edit: other_attachments
+    button: |
+      **Description of other documents attaching to *Eviction Complaint*:**
+      ${ other_attachments }
+    show if: attach_other == "Yes"
+  - Edit: unknown_occupants
+    button: |
+      **Include "Unknown Occupants" on *Eviction Complaint*:**
+      ${ word(yesno(unknown_occupants)) }
+  - Edit: cook_district
+    button: |
+      **Cook County courthouse:**
+      % if cook_district == "15":
+      ${ "Daley Center, 50 W. Washington Street, Chicago" }
+      % elif cook_district == "16":
+      ${ "Second Municipal District, 5600 Old Orchard Road, Skokie" }
+      % elif cook_district == "17":
+      ${ "Third Municipal District, 2121 Euclid Avenue, Rolling Meadows" }
+      % elif cook_district == "18":
+      ${ "Fourth Municipal District, 1500 Maybrook Drive, Maywood" }
+      % elif cook_district == "19":
+      ${ "Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview" }
+      % else:
+      ${ "Sixth Municipal District, 16501 South Kedzie Parkway, Markham" }
+      % endif      
+    show if: trial_court_index == -1
+  - Edit: e_signature
+    button: |
+      **Do you want to e-sign you *Eviction Complaint*?**
+      ${ word(yesno(e_signature)) }
+  - Edit: has_court_date
+    button: |
+      **Do you already have court date from the clerk?**
+      ${ word(yesno(has_court_date)) }
+  - Edit: hearing_date
+    button: |
+      **Court date on:**
+      ${ hearing_date } at ${ format_time(hearing_time, "h:mm a") }
+    show if: has_court_date
+  - Edit: courtroom
+    button: |
+      **Courtroom:**
+      ${ courtroom }
+    show if: has_court_date
+
+---
+id: about you review screen
+event: section_about_you
+question: |
+  About you
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: users[0].name.first
+    button: |
+      **Your name:**
+      ${users[0].name.full(middle="full")}
+  - Edit: users[0].address.address
+    button: |
+      **Your address:**
+      ${ users[0].address.on_one_line(bare=True) }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone number:**
+      ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].email
+    button: |
+      **Your email:**
+      ${ users[0].email }
+    show if: users[0].email_notice
