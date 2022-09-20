@@ -563,7 +563,7 @@ subquestion: |
 fields:
   - What happened: lease_violation_details
     input type: area
-    rows: 3
+    rows: 6
     maxlength: 425
 ---
 id: other remedies
