@@ -162,7 +162,7 @@ code: |
     package_updated_on = None
 ---
 event: about_this_interview
-id: about AssemblyLine project
+id: about this Easy Form
 question: |
   About this Easy Form
 # TODO: I think people might want more form-specific info here?

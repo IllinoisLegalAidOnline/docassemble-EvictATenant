@@ -20,6 +20,8 @@ objects:
 code: |
   al_form_type = 'new_case'
   user_ask_role = 'plaintiff'
+  github_user = 'IllinoisLegalAidOnline'
+  github_repo_name = 'docassemble-EvictATenant'
 ---
 # Road map
 sections:
@@ -139,6 +141,7 @@ code: |
   users[0].email
   
   nav.set_section('section_download')
+  set_progress(100)
   get_docs_screen
 
 ---

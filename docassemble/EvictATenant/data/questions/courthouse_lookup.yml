@@ -22,6 +22,8 @@ objects:
 code: |
   al_form_type = 'new_case'
   user_ask_role = 'plaintiff'
+  github_user = 'IllinoisLegalAidOnline'
+  github_repo_name = 'docassemble-EvictATenant'
 ---
 # Road map
 sections:
