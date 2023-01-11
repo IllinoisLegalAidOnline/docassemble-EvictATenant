@@ -23,6 +23,9 @@ code: |
   github_user = 'IllinoisLegalAidOnline'
   github_repo_name = 'docassemble-EvictATenant'
   allowed_courts = ['Circuit']
+  ilao_easy_form_title = "Evict a tenant"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/evict-tenant"
+  form_name = "Eviction"
 ---
 # Road map
 sections:
@@ -36,9 +39,6 @@ sections:
 # interview order block
 mandatory: True
 code: |
-  ilao_easy_form_title = "Evict a tenant"
-  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/evict-tenant"
-  form_name = "Eviction"
   nav.set_section('section_intro')
   sees_nav_bar
   how_to_use
@@ -126,7 +126,8 @@ code: |
   users.gather(number=1)
   users[0].address.address
   users[0].phone_number
-  users[0].email
+  if users[0].email_notice == True:
+    users[0].email
   
   nav.set_section('section_download')
   set_progress(100)
@@ -831,15 +832,31 @@ fields:
     default: IL      
   - ZIP code: users[0].address.zip
 ---
+id: notice by email
+question: |
+  Do you have an email address?
+subquestion: |
+  % if forms_to_assemble == "notice":
+  If you have an email address, you can list it so the tenants can contact you.
+  % else:
+  If you have an email address, you must list it so the court and other parties can contact you about this case.
+  % endif
+fields:
+  - "Email?": users[0].email_notice
+    datatype: yesnoradio
+---
 id: landlord email address
 question: |
-  What is your email address?
+  What email address do you want to list on your forms?
 subquestion: |
-  If you do not have email, you can leave this blank.
+  % if forms_to_assemble == "notice":
+  If you do not want to enter your personal email address, you can create a new email account.
+  % else:
+  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
+  % endif  
 fields:
   - Email: users[0].email    
     datatype: email
-    required: False
 ---
 id: landlord phone number
 question: |
@@ -1591,7 +1608,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
 attachment:
   variable name: notice_nonpayment[i]
@@ -1616,7 +1633,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
 attachment:
   variable name: notice_nonrenewal[i]
@@ -1638,7 +1655,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
 attachment:
   variable name: demand_for_possession[i]
@@ -1659,7 +1676,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
 attachment:
   variable name: affidavit_of_service[i]
@@ -1709,7 +1726,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
 attachment:
   variable name: eviction_complaint_affidavit[i]
@@ -1744,7 +1761,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 
 ---
 attachment:
@@ -1786,7 +1803,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -1830,7 +1847,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -1874,7 +1891,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -1918,7 +1935,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -1961,7 +1978,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -2005,7 +2022,7 @@ attachment:
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
-      - "landlord_email": ${ users[0].email }
+      - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county.upper() }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
@@ -2293,6 +2310,10 @@ review:
     button: |
       **Your phone number:**
       ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].email_notice
+    button: |
+      **Do you have an email address?**
+      ${ word(yesno(users[0].email_notice)) }
   - Edit: users[0].email
     button: |
       **Your email:**
@@ -2666,6 +2687,10 @@ review:
     button: |
       **Your phone number:**
       ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].email_notice
+    button: |
+      **Do you have an email address?**
+      ${ word(yesno(users[0].email_notice)) }
   - Edit: users[0].email
     button: |
       **Your email:**
