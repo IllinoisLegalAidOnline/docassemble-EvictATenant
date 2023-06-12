@@ -185,27 +185,8 @@ subquestion: |
   
   Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. Read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
 ---
-id: accept terms
-question: |
-  Terms of use
-subquestion: |
-  This program does not provide legal advice. It does not take the place of advice from a lawyer.
-
-  Using this program does not create an attorney-client relationship between you and Illinois Legal Aid Online or its employees.
-
-  ${ collapse_template(get_legal_help) }  
-
-fields:
-  - To continue, you must accept the **[terms of use](https://www.illinoislegalaid.org/about/terms-of-use)**.: accept
-    datatype: checkboxes
-    none of the above: False
-    minlength: 1
-    choices:
-      - I accept the terms of use.
-    validation messages:
-      minlength: |
-        You cannot continue unless you agree to the terms of use. 
-continue button field: accept_terms
+#id: accept terms
+# replaced by question in ILAO package
 ---
 template: get_legal_help
 subject: |
@@ -1957,6 +1938,7 @@ attachment:
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[4].phone_number) }
+      - "tenant_email": ${ other_parties[4].email }
       - "tenant_name__2": ${ other_parties[4].name.full(middle="full") if other_parties[4].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[4].alt_address.line_one(bare=True) if other_parties[4].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[4].alt_address.line_two()  if other_parties[4].has_alt_address else ""}
