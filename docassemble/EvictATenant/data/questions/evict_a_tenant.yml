@@ -505,8 +505,8 @@ subquestion: |
 fields:
   - What happened: lease_violation_details
     input type: area
-    rows: 6
-    maxlength: 425
+    rows: 8
+    maxlength: 550
 ---
 id: other remedies
 question: |
