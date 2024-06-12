@@ -41,6 +41,7 @@ mandatory: True
 code: |
   nav.set_section('section_intro')
   sees_nav_bar
+  snapshot_start
   how_to_use
   accept_terms
   eviction_overview
@@ -126,12 +127,37 @@ code: |
   users.gather(number=1)
   users[0].address.address
   users[0].phone_number
-  if users[0].email_notice == True:
-    users[0].email
+  #if users[0].email_notice == True:
+  #  users[0].email
   
   nav.set_section('section_download')
   set_progress(100)
+  forms_assembling
+  snapshot_forms
   get_docs_screen
+---
+code: |
+  stuff_to_snapshot = {
+  	'start_time': str(current_datetime().format_datetime()),
+  	'started_interview': True, 
+  	}
+    
+  stuff_to_snapshot['zip'] = showifdef('users[0].address.zip')
+
+  stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
+  
+  store_variables_snapshot(
+  	data=stuff_to_snapshot, persistent=True
+  	)
+  snapshot_interview_state = True
+---
+code: |
+  snapshot_interview_state
+  snapshot_start = True  
+---
+code: |
+  reconsider('snapshot_interview_state')
+  snapshot_forms = True
 
 ---
 id: welcome
@@ -518,11 +544,16 @@ fields:
     help: |
       You can only ask for past rent if you had a lease agreement with the people you are evicting and they still owe rent.
       % if eviction_reason == "overdue rent":
-      This would be rent owed in addition to the $${ thousands(rent_owed, show_decimals=True) } owed.
+      [NEWLINE]
+      [NEWLINE]
+      This would be rent owed in addition to the $${ thousands(rent_owed, show_decimals=True) } from ${ rent_owed_start } to ${ rent_owed_end }.
       % endif
   - Amount: past_rent_due
     datatype: currency
     min: 1
+    show if: past_rent_requested
+  - Date this rent is owed through: past_rent_owed_through
+    datatype: date
     show if: past_rent_requested
   - Future rent due through the date of judgment: use_and_occupancy
     datatype: yesnowide
@@ -823,41 +854,90 @@ fields:
     default: IL      
   - ZIP code: users[0].address.zip
 ---
-id: notice by email
+#id: notice by email
+#question: |
+#  Do you have an email address?
+#subquestion: |
+#  % if forms_to_assemble == "notice":
+#  If you have an email address, you can list it so the tenants can contact you.
+#  % else:
+#  If you have an email address, you must list it so the court and other parties can contact you about this case.
+#  % endif
+#fields:
+#  - "Email?": users[0].email_notice
+#    datatype: yesnoradio
+#---
+#id: landlord email address
+#question: |
+#  What email address do you want to list on your forms?
+#subquestion: |
+#  % if forms_to_assemble == "notice":
+#  If you do not want to enter your personal email address, you can create a new email account.
+#  % else:
+#  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
+#  % endif  
+#fields:
+#  - Email: users[0].email    
+#    datatype: email
+---
+id: your contact information
 question: |
-  Do you have an email address?
+  What is your contact information?
 subquestion: |
   % if forms_to_assemble == "notice":
-  If you have an email address, you can list it so the tenants can contact you.
+  The tenants might need to contact you.
+  
+  If you do not want to list a phone number on your forms, leave it blank.
+
+  You can list your email address if you have one. Be sure to check your email daily, otherwise you may miss important information.
   % else:
-  If you have an email address, you must list it so the court and other parties can contact you about this case.
-  % endif
-fields:
-  - "Email?": users[0].email_notice
+  The court or other parties might need to contact you about this case.
+
+  **This information will appear on your court forms.**
+  
+  If you do not want to list a phone number on your forms, leave it blank.
+
+  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important information about your case.
+  % endif  
+
+  ${ collapse_template(contact_info_help) }  
+fields:  
+  - Phone number: users[0].phone_number
+    datatype: al_international_phone
+    required: False
+  - Do you have an email address?: users[0].email_notice      
     datatype: yesnoradio
+  - note: |
+      % if forms_to_assemble == "notice":
+      This email address will appear on your forms. Be sure to check 
+      this email daily, otherwise you may miss important information.
+      % else:
+      This email address will appear on your forms. Be sure to check 
+      this email daily, otherwise you may miss important information about 
+      your case.
+      % endif
+    show if: users[0].email_notice      
+  - Email address: users[0].email    
+    datatype: email
+    show if: 
+      variable: users[0].email_notice
+      is: True
 ---
-id: landlord email address
-question: |
-  What email address do you want to list on your forms?
-subquestion: |
+template: contact_info_help
+subject: |
+  **What if I don't want to list my personal email address?**
+content: |  
   % if forms_to_assemble == "notice":
   If you do not want to enter your personal email address, you can create a new email account.
   % else:
   If you do not want to enter your personal email address, you can create a new email account to get email about your case.
-  % endif  
-fields:
-  - Email: users[0].email    
-    datatype: email
----
-id: landlord phone number
-question: |
-  What is your phone number?
-subquestion: |
-  If you do not want to include this on your forms, you can leave this blank.
-fields:
-  - Phone: users[0].phone_number
-    datatype: al_international_phone
-    required: False
+  % endif
+  
+  To make a new email account try one of these email services:
+  
+  * [**Gmail**](https://accounts.google.com/SignUp)
+  * [**Outlook**](https://outlook.live.com/owa/?nlp=1&signup=1)
+  * [**Yahoo**](https://login.yahoo.com/account/create?.lang=en-US&.intl=us)
 ---
 id: tenant name
 sets:
@@ -1371,26 +1451,36 @@ id: e-signature
 question: |
   Do you want to add your e-signature to your Eviction Complaint?
 subquestion: |
-  If you do not add your e-signature, you must sign your paper form before you file it.
+  If you do not add your **{e-signature}**, you must sign your paper forms before you file and deliver them.
 
-  ${ collapse_template(signature_help) }  
+  <div class="alert alert-info ilao-info" role="alert">
+    <h6 class="alert-heading">What it means to sign your forms</h6>
+    <p>By signing your <i>Eviction Complaint</i>, you are certifying that:</p>
+    <p><ul>
+      <li>You read the document,</li>
+      <li>You believe it to be true and correct, and</li>
+      <li>You are not filing it for an improper purpose.</li>
+    </ul></p>
+    <p>See the <a href="https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/9ce1fce9-895f-463e-b87d-f9b7631f8fde/Rule%20137.pdf"><b>Illinois Supreme Court Rule 137</b></a> for more information.</p>
+  </div>
 
 fields:
   - "Add e-signature?": e_signature
     datatype: yesnoradio
+terms:
+  - "e-signature": |
+      An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature.
 ---
-template: signature_help
-subject: |
-  **What does it mean to sign the *Eviction Complaint*?**
-content: |  
-  By signing your *Eviction Complaint*, you are certifying that:
+id: forms assembling
+continue button field: forms_assembling
+question: |
+  Almost done
+subquestion: |
+  After you click **Next**, it may take a few moments to finish making your forms.
   
-  * You read the document,
-  * You believe it to be true and correct, and
-  * You are not filing it for an improper purpose, such as to cause delay.
-
-  See **[Illinois Supreme Court Rule 137](https://www.illinoiscourts.gov/supreme-court-rules)** for more information.
-
+  ###### You do not need to refresh your screen. Hang in there!
+  
+  [NEWLINE]
 ---
 id: get docs screen
 event: get_docs_screen
@@ -1450,7 +1540,7 @@ objects:
   - notice_nonrenewal: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
   - demand_for_possession: ALDocument.using(title="Demand", filename="demand.pdf",  has_addendum=False)
   - affidavit_of_service: ALDocument.using(title="Affidavit of service", filename="affidavit.pdf",  has_addendum=False)
-  - eviction_complaint: ALDocument.using(title="Complaint", filename="complaint.pdf", has_addendum=False)
+  - eviction_complaint: ALDocument.using(title="Eviction Complaint", filename="complaint.pdf", has_addendum=False)
   - eviction_complaint_affidavit: ALDocument.using(title="Affidavit - Supporting Documents", filename="complaint_affidavit.pdf", has_addendum=False)
   - eviction_summons: ALDocument.using(title="Summons", filename="summons.pdf", has_addendum=False)
   - eviction_summons_2: ALDocument.using(title="Summons 2", filename="summons_2.pdf", has_addendum=False)
@@ -1703,6 +1793,7 @@ attachment:
       - "overstayed_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "overstay" else False }
       - "past_due_rent_checkbox": ${ past_rent_requested }
       - "past_due_rent_amount": ${ thousands(past_rent_due, show_decimals=True) if past_rent_requested else "" }
+      - "past_rent_owed_through": ${ past_rent_owed_through if past_rent_requested else "" }
       - "use_occupancy_checkbox": ${ use_and_occupancy }
       - "attorney_fees_checkbox": ${ attorneys_fees }
       - "notice_attach_checkbox": ${ True if attach_notice == "Yes" else False }
@@ -1711,7 +1802,6 @@ attachment:
       - "affidavit_no_attach_checkbox": ${ True if attach_notice == "No" or attach_service == "No" or attach_lease == "No" or attach_other == "No" else "" }
       - "other_attach_checkbox": ${ True if attach_other == "Yes" else False }
       - "other_supporting_documents": ${ other_attachments }
-      - "no_docs_attach_checkbox": ${ "" }
       - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
       - "landlord_name": ${ users[0].name.full(middle="full") }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
@@ -2192,6 +2282,11 @@ review:
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
     show if: past_rent_requested
+  - Edit: past_rent_owed_through
+    button: |
+      **Past rent due through:**
+      ${ past_rent_owed_through }
+    show if: past_rent_requested
   - Edit: use_and_occupancy
     button: |
       **Tenant should pay future rent during eviction case:**
@@ -2401,6 +2496,7 @@ review:
 ---
 id: property info review screen
 event: section_property_info
+section: Basic info
 question: |
   Basic info
 subquestion: |
@@ -2444,6 +2540,7 @@ review:
 ---
 id: eviction details review screen
 event: section_eviction_details
+section: Eviction details
 question: |
   Eviction details
 subquestion: |
@@ -2511,6 +2608,7 @@ review:
 ---
 id: eviction court forms review screen
 event: section_form_info
+section: Eviction court forms (optional)
 question: |
   Eviction court forms (optional)
 subquestion: |
@@ -2524,6 +2622,11 @@ review:
     button: |
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: past_rent_owed_through
+    button: |
+      **Past rent due through:**
+      ${ past_rent_owed_through }
     show if: past_rent_requested
   - Edit: use_and_occupancy
     button: |
@@ -2662,6 +2765,7 @@ review:
 ---
 id: about you review screen
 event: section_about_you
+section: About you
 question: |
   About you
 subquestion: |
