@@ -524,6 +524,9 @@ fields:
     datatype: currency
     min: 1
     show if: past_rent_requested
+  - Date this rent is owed through: past_rent_owed_through
+    datatype: date
+    show if: past_rent_requested
   - Future rent due through the date of judgment: use_and_occupancy
     datatype: yesnowide
   - Attorneys' fees (if applicable): attorneys_fees
@@ -1703,6 +1706,7 @@ attachment:
       - "overstayed_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "overstay" else False }
       - "past_due_rent_checkbox": ${ past_rent_requested }
       - "past_due_rent_amount": ${ thousands(past_rent_due, show_decimals=True) if past_rent_requested else "" }
+      - "past_rent_owed_through": ${ past_rent_owed_through if past_rent_requested else "" }
       - "use_occupancy_checkbox": ${ use_and_occupancy }
       - "attorney_fees_checkbox": ${ attorneys_fees }
       - "notice_attach_checkbox": ${ True if attach_notice == "Yes" else False }
@@ -1711,7 +1715,6 @@ attachment:
       - "affidavit_no_attach_checkbox": ${ True if attach_notice == "No" or attach_service == "No" or attach_lease == "No" or attach_other == "No" else "" }
       - "other_attach_checkbox": ${ True if attach_other == "Yes" else False }
       - "other_supporting_documents": ${ other_attachments }
-      - "no_docs_attach_checkbox": ${ "" }
       - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
       - "landlord_name": ${ users[0].name.full(middle="full") }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
@@ -2192,6 +2195,11 @@ review:
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
     show if: past_rent_requested
+  - Edit: past_rent_owed_through
+    button: |
+      **Past rent due through:**
+      ${ past_rent_owed_through }
+    show if: past_rent_requested
   - Edit: use_and_occupancy
     button: |
       **Tenant should pay future rent during eviction case:**
@@ -2524,6 +2532,11 @@ review:
     button: |
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: past_rent_owed_through
+    button: |
+      **Past rent due through:**
+      ${ past_rent_owed_through }
     show if: past_rent_requested
   - Edit: use_and_occupancy
     button: |
