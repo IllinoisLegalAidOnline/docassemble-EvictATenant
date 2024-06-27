@@ -142,7 +142,14 @@ code: |
   	'started_interview': True, 
   	}
     
+  try:
+    stuff_to_snapshot['ip_address'] = device(ip=True)
+  except:
+    pass
+
   stuff_to_snapshot['zip'] = showifdef('users[0].address.zip')
+  
+  stuff_to_snapshot['forms_to_assemble'] = showifdef('forms_to_assemble')
 
   stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
   
@@ -897,7 +904,7 @@ subquestion: |
   
   If you do not want to list a phone number on your forms, leave it blank.
 
-  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important information about your case.
+  If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
   % endif  
 
   ${ collapse_template(contact_info_help) }  
@@ -1451,6 +1458,8 @@ id: e-signature
 question: |
   Do you want to add your e-signature to your Eviction Complaint?
 subquestion: |
+  This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
+
   If you do not add your **{e-signature}**, you must sign your paper forms before you file and deliver them.
 
   <div class="alert alert-info ilao-info" role="alert">
@@ -2443,7 +2452,9 @@ review:
     show if: has_court_date
 
 ---
+id: edit the tenants review screen
 continue button field: other_parties.revisit
+section: Basic info
 question: |
     Edit the tenants
 subquestion: |
@@ -2461,7 +2472,9 @@ columns:
 delete buttons: True
 confirm: True
 ---
+id: edit tenant's information review screen
 continue button field: x.review_tenant_info
+section: Basic info
 generic object: ALIndividual
 question: |
   Edit ${ x.name.full(middle="full") }'s information
