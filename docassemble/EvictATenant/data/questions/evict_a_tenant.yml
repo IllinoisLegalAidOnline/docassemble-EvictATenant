@@ -325,6 +325,8 @@ code: |
 id: landlord or owner
 question: |
   Are you a landlord or owner of the rental property?
+subquestion: |
+  **Note:** If a corporation or Limited Liability Company (LLC) owns the property, it must hire a lawyer. Property managers cannot file on behalf of the owner.
 fields:
   - no label: landlord_or_owner
     datatype: yesnoradio
@@ -335,6 +337,8 @@ question: |
   Sorry
 subquestion: |
   You must be the landlord or owner of the rental property to use this program.
+  
+  If a corporation or Limited Liability Company (LLC) owns the property, it must hire a lawyer. Property managers cannot file on behalf of the owner.
 buttons:
   - Exit: exit
   - Restart: restart
@@ -1527,7 +1531,7 @@ under: |
   % endif 
 
   &nbsp;
-  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=current_context().question_id, easy_form_variable=current_context().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
 ---
 generic object: ALDocumentBundle
 template: x.send_email_template
