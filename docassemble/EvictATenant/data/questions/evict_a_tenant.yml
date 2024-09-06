@@ -174,6 +174,18 @@ subquestion: |
   Welcome to Illinois Legal Aid Online's **Evict a tenant** Easy Form.
 
   This program helps you make *Notice* and *Eviction Complaint* forms to evict a tenant in Illinois.
+
+  You can use these forms if you:
+  
+  * Have a written or oral (spoken) lease with the tenant, even if you are related, or
+  * Need to evict someone who you didn't agree could live there.
+
+  **Note:** If you are a landlord and want to evict:
+
+  * Your spouse, minor child, or ward, or
+  * A person you're the court-appointed guardian of,
+
+  then these forms may not apply to your situation. You can use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
   
   Learn about [**evicting a tenant**](https://www.illinoislegalaid.org/node/29691).
 field: sees_nav_bar
@@ -962,6 +974,8 @@ question: |
   % else:
   What is the ${ ordinal(i) } tenant's name?
   % endif
+subquestion: |
+  ${ collapse_template(tenant_or_occupant_help) }  
 fields:
   - code: |
       other_parties[i].name_fields()
@@ -972,6 +986,23 @@ validation code: |
     validation_error("Middle name must be 25 characters or less.", field="other_parties[0].name.middle")
   if len(other_parties[0].name.last) > 25:
     validation_error("Last name must be 25 characters or less.", field="other_parties[0].name.last")
+---
+template: tenant_or_occupant_help
+subject: |
+  **Important information about who you can evict**
+content: |  
+  You can evict a tenant or occupant if you:
+  
+  * Have a written or oral (spoken) lease with the tenant, even if you are related, or
+  * Need to evict someone who you didn't agree could live there.
+
+  **Note:** If you are a landlord and want to evict:
+
+  * Your spouse, minor child, or ward, or
+  * A person you're the court-appointed guardian of,
+
+  then these forms may not apply to your situation. You can use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+
 ---
 id: any other tenants
 question: |
