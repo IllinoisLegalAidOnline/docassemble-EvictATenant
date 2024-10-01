@@ -1597,8 +1597,7 @@ objects:
   - eviction_help_cook_county: ALDocument.using(title="Eviction help Cook County", filename="eviction_help_cook_county.pdf", has_addendum=False)
   - eviction_help_dupage_county: ALDocument.using(title="Eviction help DuPage County", filename="eviction_help_dupage_county.pdf", has_addendum=False)
   - eviction_help_winnebago_county: ALDocument.using(title="Eviction help Winnebago County", filename="eviction_help_winnebago_county.pdf", has_addendum=False)
-  
-  
+    
 ---
 code: |
   eviction_instructions.enabled = True
@@ -1670,13 +1669,12 @@ code: |
     #if property_county == "Cook":
       eviction_help_cook_county.enabled = True
     elif trial_court.address.county == "DuPage":
-    #elif property_county == "DuPage":
       eviction_help_dupage_county.enabled = True
-    elif trial_court.address.county == "Winnebago":
-    #elif property_county == "Winnebago":
-      eviction_help_winnebago_county.enabled = True
     else:
       eviction_help_illinois.enabled = True
+  
+#elif trial_court.address.county == "Winnebago":
+#  eviction_help_winnebago_county.enabled = True
 ---
 code: |
   summons_bundle.title = "Summons"
@@ -1690,13 +1688,13 @@ code: |
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="Download all forms")
   - al_court_bundle: ALDocumentBundle.using(elements=[eviction_complaint, eviction_complaint_affidavit, eviction_summons, eviction_summons_2, eviction_summons_3, eviction_summons_4, eviction_summons_5, eviction_summons_unknown], filename="eviction_forms.pdf", title="Eviction forms")
-  - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons.pdf")  
-  - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_2.pdf")  
-  - summons_3_bundle: ALDocumentBundle.using(elements=[eviction_summons_3, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_3.pdf")  
-  - summons_4_bundle: ALDocumentBundle.using(elements=[eviction_summons_4, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_4.pdf")  
-  - summons_5_bundle: ALDocumentBundle.using(elements=[eviction_summons_5, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_5.pdf")  
-  - summons_blank_bundle: ALDocumentBundle.using(elements=[eviction_summons_blank, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_blank.pdf")  
-  - summons_unknown_bundle: ALDocumentBundle.using(elements=[eviction_summons_unknown, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county, eviction_help_winnebago_county], filename="summons_unknown_occupants.pdf")  
+  - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons.pdf")  
+  - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_2.pdf")  
+  - summons_3_bundle: ALDocumentBundle.using(elements=[eviction_summons_3, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_3.pdf")  
+  - summons_4_bundle: ALDocumentBundle.using(elements=[eviction_summons_4, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_4.pdf")  
+  - summons_5_bundle: ALDocumentBundle.using(elements=[eviction_summons_5, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_5.pdf")  
+  - summons_blank_bundle: ALDocumentBundle.using(elements=[eviction_summons_blank, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_blank.pdf")  
+  - summons_unknown_bundle: ALDocumentBundle.using(elements=[eviction_summons_unknown, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_unknown_occupants.pdf")  
 
 ---
 attachment:
