@@ -1978,9 +1978,11 @@ attachment:
       - "alt_service_address_csz": ${ other_parties[1].alt_address.line_two()  if other_parties[1].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[1].mobile_number) if other_parties[1].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[1].alt_email if other_parties[1].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2022,9 +2024,11 @@ attachment:
       - "alt_service_address_csz": ${ other_parties[2].alt_address.line_two()  if other_parties[2].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[2].mobile_number) if other_parties[2].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[2].alt_email if other_parties[2].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2066,9 +2070,11 @@ attachment:
       - "alt_service_address_csz": ${ other_parties[3].alt_address.line_two()  if other_parties[3].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[3].mobile_number) if other_parties[3].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[3].alt_email if other_parties[3].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2110,9 +2116,11 @@ attachment:
       - "alt_service_address_csz": ${ other_parties[4].alt_address.line_two()  if other_parties[4].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[4].mobile_number) if other_parties[4].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[4].alt_email if other_parties[4].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2154,9 +2162,11 @@ attachment:
       - "alt_service_address_csz": ${ "" }
       - "alt_tenant_phone": ${ "" }
       - "alt_tenant_email": ${ "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
