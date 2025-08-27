@@ -1553,17 +1553,18 @@ question: |
   Download
 subquestion: |
   
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
 
   Read the instructions to learn what to do with your forms.
 
   % if forms_to_assemble != "complaint":
-  **Note:** Be sure to add the date and sign the Notice or Demand before you give it to the tenant. 
+  **Note:** Be sure to add the date and sign the Notice or Demand before you give it to the tenant.
+  
   % endif
   % if forms_to_assemble != "notice":
   This program **does not file** your *Eviction Complaint* with the court. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
-  % endif
   
+  % endif
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
   
   ${ al_user_bundle.download_list_html() }
