@@ -108,6 +108,7 @@ code: |
       attachments_unsure
       
     summons_intro
+    service_method
     if other_parties.number() > 5:
       extra_summons
 
@@ -203,7 +204,7 @@ subquestion: |
   * The written lease if you have one, and
   * Your address and contact information.
 
-  Set aside 10 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+  Set aside 10 to 15 minutes to finish this program. You can log in and save your work to continue later. 
  
   ${ collapse_template(help_example) }  
 
@@ -1012,7 +1013,7 @@ question: |
   Is there another tenant?
   % endif
 subquestion: |
-  So far you have told us about ${comma_and_list(other_parties.complete_elements().full_names())}.
+  So far you have told us about ${other_parties.full_names()}.
 fields:
   - "Anyone else?": other_parties.there_is_another
     datatype: yesnoradio
@@ -1023,11 +1024,31 @@ continue button field: summons_intro
 question: |
   Summons
 subquestion: |
-  In an eviction case, the court papers include an *Eviction Complaint* and a *Summons*. The *Summons* tells the tenants that you are asking the court for an eviction and gives them the court date.
+  In an eviction case, the court papers include an *Eviction Complaint* and a *Summons*. The *Summons* tells the tenants and occupants that you are asking the court for an eviction and gives them the court date.
   
   You may have to pay the sheriff to deliver each *Summons*. This delivery is called "service."
   
   If the *Summons* is not properly served by the sheriff, you might not get an *Eviction Order* or a money judgment.
+---
+id: service method
+question: |
+  % if eviction_reason == "no right to stay":
+  Who do you want to deliver court papers to the occupants?
+  % else:
+  Who do you want to deliver court papers to the tenants?
+  % endif  
+subquestion: |
+  In Illinois, Sheriffs usually serve *Eviction Complaints*.
+  
+  **Note:** There may be a charge for a special process server or a licensed private detective.
+fields:
+  - no label: service_method
+    datatype: radio
+    choices:
+      - Sheriff (most common): sheriff
+      - Special process server: sps
+      - Licensed private detective: detective
+      - I don't know. I will decide and complete the Summons later.: idk
 ---
 id: extra summons required
 continue button field: extra_summons
@@ -1042,9 +1063,9 @@ subquestion: |
 ---
 id: tenant contact information
 question: |
-  Tell us more about ${ other_parties[i].name.full(middle="full") }
+  Tell us more about ${ other_parties[i].name_full() }
 subquestion: |
-  Enter ${ other_parties[i].name.full(middle="full") }'s contact information, if you know it.
+  Enter ${ other_parties[i].name_full() }'s contact information, if you know it.
 fields:
   - Phone: other_parties[i].phone_number
     datatype: al_international_phone
@@ -1055,16 +1076,16 @@ fields:
 ---
 id: tenant alt address question
 question: |
-  Do you have another address where ${ other_parties[i].name.full(middle="full") } can be found?
+  Do you have another address where ${ other_parties[i].name_full() } can be found?
 subquestion: |
-  If the sheriff cannot find ${ other_parties[i].name.full(middle="full") } at ${ other_parties[0].address.on_one_line(bare=True) }, the sheriff can try to serve them at another location.
+  If the sheriff cannot find ${ other_parties[i].name_full() } at ${ other_parties[0].address.on_one_line(bare=True) }, the sheriff can try to serve them at another location.
 fields:
-  - Other address for ${other_parties[i].name.full(middle="full")}?: other_parties[i].has_alt_address
+  - Other address for ${other_parties[i].name_full()}?: other_parties[i].has_alt_address
     datatype: yesnoradio
 ---
 id: alt address
 question: |
-  What is the other address where ${ other_parties[i].name.full(middle="full") } can be found?
+  What is the other address where ${ other_parties[i].name_full() } can be found?
 fields:
   - Street address: other_parties[i].alt_address.address
     address autocomplete: True
@@ -1080,7 +1101,7 @@ id: tenant alt contact information
 question: |
   Other contact information
 subquestion: |
-  Enter ${ other_parties[i].name.full(middle="full") }'s other contact information, if you know it.
+  Enter ${ other_parties[i].name_full() }'s other contact information, if you know it.
 fields:
   - Phone: other_parties[i].mobile_number
     datatype: al_international_phone
@@ -1493,7 +1514,7 @@ id: e-signature
 question: |
   Do you want to add your e-signature to your Eviction Complaint?
 subquestion: |
-  This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
+  This program can put "**/s/ ${users[0].name_full()}**" where you would sign your name. The court will accept this as your signature.
 
   If you do not add your **{e-signature}**, you must sign your paper forms before you file and deliver them.
 
@@ -1532,17 +1553,18 @@ question: |
   Download
 subquestion: |
   
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
 
   Read the instructions to learn what to do with your forms.
 
   % if forms_to_assemble != "complaint":
-  **Note:** Be sure to add the date and sign the Notice or Demand before you give it to the tenant. 
+  **Note:** Be sure to add the date and sign the Notice or Demand before you give it to the tenant.
+  
   % endif
   % if forms_to_assemble != "notice":
-  This program does not file your *Eviction Complaint* with the court. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
-  % endif
+  This program **does not file** your *Eviction Complaint* with the court. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
   
+  % endif
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
   
   ${ al_user_bundle.download_list_html() }
@@ -1552,7 +1574,7 @@ subquestion: |
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
   % if forms_to_assemble != "notice":
   
-  This program does not file your *Eviction Complaint* with the court. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
+  This program **does not file** your *Eviction Complaint* with the court. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
   % endif
 
   Thank you for using ILAO Easy Forms!
@@ -1727,7 +1749,7 @@ attachment:
       - "cure_period": ${ cure_period }
       - "cure_allowed_no": ${ cure_allowed == False }
       - "lease_end_period": ${ lease_end_period }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1752,7 +1774,7 @@ attachment:
       - "five_day_notice_checkbox": ${ True if notice_period == 5 else False }
       - "other_notice_checkbox": ${ True if notice_period != 5 else False }
       - "notice_period": ${ notice_period if notice_period != 5 else "" }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1774,7 +1796,7 @@ attachment:
       - "property_street_address__2": ${ other_parties[0].address.address }
       - "property_unit__2": ${ other_parties[0].address.unit }
       - "property_address_csz__2": ${ other_parties[0].address.line_two() }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1795,7 +1817,7 @@ attachment:
       - "property_street_address__2": ${ other_parties[0].address.address }
       - "property_unit__2": ${ other_parties[0].address.unit }
       - "property_address_csz__2": ${ other_parties[0].address.line_two() }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1844,8 +1866,8 @@ attachment:
       - "affidavit_no_attach_checkbox": ${ True if attach_notice == "No" or attach_service == "No" or attach_lease == "No" or attach_other == "No" else "" }
       - "other_attach_checkbox": ${ True if attach_other == "Yes" else False }
       - "other_supporting_documents": ${ other_attachments }
-      - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "e_signature": ${ users[0].name_full() if e_signature else '' }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1879,8 +1901,8 @@ attachment:
       - "lease_lost_checkbox": ${ lease_lost if attach_lease == "No" else "" }
       - "lease_other_checkbox": ${ lease_not_attached_other if attach_lease == "No" else "" }
       - "lease_other_reason": ${ lease_not_attached_other_reason if (lease_not_attached_other and attach_lease == "No") else "" }
-      - "e_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "e_signature": ${ users[0].name_full() if e_signature else '' }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1900,19 +1922,22 @@ attachment:
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
-      - "tenant_name__1": ${ other_parties[0].name.full(middle="full") }
+      - "tenant_name__1": ${ other_parties[0].name_full() }
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
       - "tenant_email": ${ other_parties[0].email }
-      - "tenant_name__2": ${ other_parties[0].name.full(middle="full") if other_parties[0].has_alt_address else "" }
+      - "tenant_name__2": ${ other_parties[0].name_full() if other_parties[0].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[0].alt_address.line_one(bare=True) if other_parties[0].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[0].alt_address.line_two()  if other_parties[0].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[0].mobile_number) if other_parties[0].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[0].alt_email if other_parties[0].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+     
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -1922,7 +1947,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1944,19 +1969,21 @@ attachment:
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
-      - "tenant_name__1": ${ other_parties[1].name.full(middle="full") }
+      - "tenant_name__1": ${ other_parties[1].name_full() }
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[1].phone_number) }
       - "tenant_email": ${ other_parties[1].email }
-      - "tenant_name__2": ${ other_parties[1].name.full(middle="full") if other_parties[1].has_alt_address else "" }
+      - "tenant_name__2": ${ other_parties[1].name_full() if other_parties[1].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[1].alt_address.line_one(bare=True) if other_parties[1].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[1].alt_address.line_two()  if other_parties[1].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[1].mobile_number) if other_parties[1].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[1].alt_email if other_parties[1].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -1966,7 +1993,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -1988,19 +2015,21 @@ attachment:
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
-      - "tenant_name__1": ${ other_parties[2].name.full(middle="full") }
+      - "tenant_name__1": ${ other_parties[2].name_full() }
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[2].phone_number) }
       - "tenant_email": ${ other_parties[2].email }
-      - "tenant_name__2": ${ other_parties[2].name.full(middle="full") if other_parties[2].has_alt_address else "" }
+      - "tenant_name__2": ${ other_parties[2].name_full() if other_parties[2].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[2].alt_address.line_one(bare=True) if other_parties[2].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[2].alt_address.line_two()  if other_parties[2].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[2].mobile_number) if other_parties[2].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[2].alt_email if other_parties[2].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2010,7 +2039,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -2032,19 +2061,21 @@ attachment:
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
-      - "tenant_name__1": ${ other_parties[3].name.full(middle="full") }
+      - "tenant_name__1": ${ other_parties[3].name_full() }
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[3].phone_number) }
       - "tenant_email": ${ other_parties[3].email }
-      - "tenant_name__2": ${ other_parties[3].name.full(middle="full") if other_parties[3].has_alt_address else "" }
+      - "tenant_name__2": ${ other_parties[3].name_full() if other_parties[3].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[3].alt_address.line_one(bare=True) if other_parties[3].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[3].alt_address.line_two()  if other_parties[3].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[3].mobile_number) if other_parties[3].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[3].alt_email if other_parties[3].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2054,7 +2085,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -2076,19 +2107,21 @@ attachment:
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
-      - "tenant_name__1": ${ other_parties[4].name.full(middle="full") }
+      - "tenant_name__1": ${ other_parties[4].name_full() }
       - "service_address_street": ${ other_parties[0].address.line_one(bare=True) }
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[4].phone_number) }
       - "tenant_email": ${ other_parties[4].email }
-      - "tenant_name__2": ${ other_parties[4].name.full(middle="full") if other_parties[4].has_alt_address else "" }
+      - "tenant_name__2": ${ other_parties[4].name_full() if other_parties[4].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[4].alt_address.line_one(bare=True) if other_parties[4].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[4].alt_address.line_two()  if other_parties[4].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[4].mobile_number) if other_parties[4].has_alt_address else "" }
       - "alt_tenant_email": ${ other_parties[4].alt_email if other_parties[4].has_alt_address else "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2098,7 +2131,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -2130,9 +2163,11 @@ attachment:
       - "alt_service_address_csz": ${ "" }
       - "alt_tenant_phone": ${ "" }
       - "alt_tenant_email": ${ "" }
-      - "sheriff_checkbox": ${ True }
+      - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
+      - "service_method_sps": ${ True if service_method == "sps" else "" }
+      - "service_method_detective": ${ True if service_method == "detective" else "" }
       - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
@@ -2142,7 +2177,7 @@ attachment:
       - "courthouse_address": ${ courthouse_info }
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
-      - "landlord_name": ${ users[0].name.full(middle="full") }
+      - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -2224,19 +2259,6 @@ review:
       % else:
       ${ other_parties[0].address.on_one_line(bare=True) }, ${ property_county } County
       % endif
-
-  #- Edit: 
-  #    - other_parties[0].address.address
-  #    - recompute:
-  #      - trial_court_index
-  #      - trial_court
-  #  button: |
-  #    **County where the property is located:**
-  #    % if trial_court_index == -1:
-  #    ${ "Cook" }
-  #    % else:
-  #    ${ trial_court.address.county }
-  #    % endif
   
   - Edit: is_owner_occupied
     button: |
@@ -2255,7 +2277,7 @@ review:
       **Tenants: (Edit to change names and contact info)**
 
       % for my_var in other_parties:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
   - Edit: forms_to_assemble
     button: |
@@ -2427,10 +2449,24 @@ review:
     button: |
       **Include "Unknown Occupants" on *Eviction Complaint*:**
       ${ word(yesno(unknown_occupants)) }
+
+  - Edit: service_method
+    button: |
+      **How do you want the tenants or occupants to be served?**
+      % if service_method == "sheriff":
+      By the sheriff
+      % elif service_method == "sps":
+      By a special process server
+      % elif service_method == "detective":
+      By a licensed private detective
+      % else:
+      I don't know. I will decide later.
+      % endif
+      
   - Edit: users[0].name.first
     button: |
       **Your name:**
-      ${users[0].name.full(middle="full")}
+      ${users[0].name_full()}
   - Edit: users[0].address.address
     button: |
       **Your address:**
@@ -2499,7 +2535,7 @@ table: other_parties.table
 rows: other_parties
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Contact and service info: |
       action_button_html(url_action(row_item.attr_name("review_tenant_info")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -2510,33 +2546,33 @@ continue button field: x.review_tenant_info
 section: Basic info
 generic object: ALIndividual
 question: |
-  Edit ${ x.name.full(middle="full") }'s information
+  Edit ${ x.name_full() }'s information
 review: 
   - Edit: x.name.first
     button: |
       **Tenant name:**
-      ${ x.name.full(middle="full")  }
+      ${ x.name_full()  }
   - Edit: x.phone_number
     button: |
-      **${ x.name.full(middle="full") }'s phone number:**
+      **${ x.name_full() }'s phone number:**
       ${ phone_number_formatted(x.phone_number) }
   - Edit: x.email
     button: |
-      **${ x.name.full(middle="full") }'s email:**
+      **${ x.name_full() }'s email:**
       ${ x.email }
   - Edit: x.alt_address.address
     button: |
-      **${ x.name.full(middle="full") }'s alternate address:**
+      **${ x.name_full() }'s alternate address:**
       ${ x.alt_address.on_one_line(bare=True) }
     show if: x.has_alt_address
   - Edit: x.mobile_number
     button: |
-      **${ x.name.full(middle="full") }'s alternate phone number:**
+      **${ x.name_full() }'s alternate phone number:**
       ${ phone_number_formatted(x.mobile_number) }
     show if: x.has_alt_address
   - Edit: x.alt_email
     button: |
-      **${ x.name.full(middle="full") }'s alternate email:**
+      **${ x.name_full() }'s alternate email:**
       ${ x.alt_email }
     show if: x.has_alt_address
 ---
@@ -2581,7 +2617,7 @@ review:
       % endif
 
       % for my_var in other_parties:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
 ---
 id: eviction details review screen
@@ -2772,6 +2808,20 @@ review:
     button: |
       **Include "Unknown Occupants" on *Eviction Complaint*:**
       ${ word(yesno(unknown_occupants)) }
+
+  - Edit: service_method
+    button: |
+      **How do you want the tenants or occupants to be served?**
+      % if service_method == "sheriff":
+      By the sheriff
+      % elif service_method == "sps":
+      By a special process server
+      % elif service_method == "detective":
+      By a licensed private detective
+      % else:
+      I don't know. I will decide later.
+      % endif
+      
   - Edit: cook_district
     button: |
       **Cook County courthouse:**
@@ -2820,7 +2870,7 @@ review:
   - Edit: users[0].name.first
     button: |
       **Your name:**
-      ${users[0].name.full(middle="full")}
+      ${users[0].name_full()}
   - Edit: users[0].address.address
     button: |
       **Your address:**
