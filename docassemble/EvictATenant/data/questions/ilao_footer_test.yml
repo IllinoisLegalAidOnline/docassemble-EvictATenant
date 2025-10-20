@@ -5,7 +5,7 @@ default screen parts:
   footer: |
     [:share-alt-square: Share](${ url_ask([{'undefine': ['al_sharing_type','al_how_share_link']}, 'al_share_form_screen', {'recompute': ['al_did_share_form']}, 'al_share_results']) })
     [:info-circle: About](${ url_action('about_this_interview') })
-    [:comment-dots: Feedback](${ interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url , easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1) } ){:target="_blank"}
+    [:comment-dots: Feedback](${ interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url , easy_form_title=ilao_easy_form_title, easy_form_page=current_context().question_id, easy_form_variable=current_context().variable, local=False,reset=1) } ){:target="_blank"}
 ---
 image sets:
   smashicons:
@@ -42,7 +42,7 @@ fields:
   - note: |
       You can copy and share this link
       
-      ${ copy_button_html(  interview_url(i=user_info().filename, style="short", new_session=1), label=al_copy_button_label.show(), tooltip_inert_text=al_copy_button_tooltip_inert_text.show(), tooltip_copied_text = al_copy_button_tooltip_copied_text.show() ) }
+      ${ copy_button_html(  interview_url(i=current_context().filename, style="short", new_session=1), label=al_copy_button_label.show(), tooltip_inert_text=al_copy_button_tooltip_inert_text.show(), tooltip_copied_text = al_copy_button_tooltip_copied_text.show() ) }
     js show if: |
       val("al_sharing_type") === "tell_friend" && val("al_how_share_link") === "link_only"      
   - note: |
@@ -149,7 +149,7 @@ subject: |
   ${ al_share_form_from_name } wants to tell you about ${ AL_ORGANIZATION_TITLE }
 content: |
   ${ tell_a_friend_message }
-  ${ interview_url(i=user_info().filename, style="short", new_session=1) }
+  ${ interview_url(i=current_context().filename, style="short", new_session=1) }
 ---
 code: |
   github_url = "https://github.com/" + github_user + "/" + github_repo_name
@@ -191,7 +191,7 @@ content: |
   "${all_variables(special='metadata').get('title','').rstrip()}" includes code 
   from the [Document Assembly Line project](https://suffolklitlab.org/docassemble-AssemblyLine-documentation/docs/). 
   
-  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1), label=':comment: Let us know what you think', color="#181c36", size="md", new_window=True) }
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=current_context().question_id, easy_form_variable=current_context().variable, local=False,reset=1), label=':comment: Let us know what you think', color="#181c36", size="md", new_window=True) }
 ---
 # not sure if we need this
 #id: start a new session
