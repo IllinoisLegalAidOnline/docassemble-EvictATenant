@@ -553,8 +553,10 @@ subquestion: |
 fields:
   - What happened: lease_violation_details
     input type: area
-    rows: 8
+    rows: 10
     maxlength: 550
+  - note: |
+      The form has room for about **550 characters** including spaces.
 ---
 id: other remedies
 question: |
@@ -676,6 +678,8 @@ question: |
   Attach documents to your Eviction Complaint
 subquestion: |
   You need to attach certain documents to your *Eviction Complaint*. Which ones depends on why you are evicting your tenant. The next screens will explain more.
+
+  ${ collapse_template(attaching_documents) }
   
   If you do not have the required documents, you should attach an *Affidavit – Supporting Documents Not Attached to Eviction Complaint*. If you do not attach either, your eviction case might be dismissed, and you will need to start over.
 
@@ -685,6 +689,16 @@ subquestion: |
   * An *Affidavit of Service of a Demand or Notice*,
   * The written lease or relevant parts, if there is a written lease, and
   * Other documents that support your *Eviction Complaint*.
+---
+template: attaching_documents
+subject: |
+  **How to attach documents**
+content: |
+  You cannot attach your documents while using this Easy Form. When you file your case, you can attach documents to your forms. 
+
+  If e-filing, you can upload the documents separately. If filing with paper forms, you can staple the documents to your forms. Ask the circuit clerk for instructions.
+
+  To learn more, read ILAO's article about [**e-filing**](https://www.illinoislegalaid.org/legal-information/e-filing-basics).
 ---
 id: attach notice
 question: |
@@ -796,6 +810,8 @@ question: |
   Will you attach other documents to your Eviction Complaint?
 subquestion: |
   You can attach other documents that will support why your tenant should be evicted.
+
+  ${ collapse_template(attaching_documents) }  
 field: attach_other
 choices:
   - Yes: Yes
@@ -810,8 +826,10 @@ subquestion: |
 fields:
   - List what else you will attach: other_attachments
     input type: area
-    rows: 3
+    rows: 6
     maxlength: 300
+  - note: |
+      The form has room for about **300 characters** including spaces.
 ---
 id: attachments unsure
 continue button field: attachments_unsure
@@ -1012,7 +1030,7 @@ question: |
   Is there another tenant?
   % endif
 subquestion: |
-  So far you have told us about ${other_parties.full_names()}.
+  So far you told us about ${other_parties.full_names()}.
 fields:
   - "Anyone else?": other_parties.there_is_another
     datatype: yesnoradio
@@ -1740,7 +1758,7 @@ attachment:
       - "property_street_address": ${ other_parties[0].address.address }
       - "property_unit": ${ other_parties[0].address.unit }
       - "property_address_csz": ${ other_parties[0].address.line_two() }
-      - "lease_violations": ${ lease_violation_details }
+      - "lease_violations": ${ lease_violation_details.replace("\n", " ").replace("\r", " ") }
       - "property_street_address__2": ${ other_parties[0].address.address }
       - "property_unit__2": ${ other_parties[0].address.unit }
       - "property_address_csz__2": ${ other_parties[0].address.line_two() }
@@ -1851,7 +1869,7 @@ attachment:
       - "rent_owed_amount": ${ thousands(rent_owed, show_decimals=True)  if eviction_reason == "overdue rent" else "" }
       - "nonrenewal_checkbox": ${ True if eviction_reason == "non-renewal" else False }
       - "lease_violation_checkbox": ${ True if eviction_reason == "lease violation" else False }
-      - "lease_violation_explanation": ${ lease_violation_details if eviction_reason == "lease violation" else ""}
+      - "lease_violation_explanation": ${ lease_violation_details.replace("\n", " ").replace("\r", " ") if eviction_reason == "lease violation" else ""}
       - "trespass_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "trespass" else False }
       - "overstayed_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "overstay" else False }
       - "past_due_rent_checkbox": ${ past_rent_requested }
@@ -1864,7 +1882,7 @@ attachment:
       - "lease_attach_checkbox": ${ True if attach_lease == "Yes" else False }
       - "affidavit_no_attach_checkbox": ${ True if attach_notice == "No" or attach_service == "No" or attach_lease == "No" or attach_other == "No" else "" }
       - "other_attach_checkbox": ${ True if attach_other == "Yes" else False }
-      - "other_supporting_documents": ${ other_attachments }
+      - "other_supporting_documents": ${ other_attachments.replace("\n", " ").replace("\r", " ") }
       - "e_signature": ${ users[0].name_full() if e_signature else '' }
       - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
