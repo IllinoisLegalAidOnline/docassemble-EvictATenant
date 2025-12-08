@@ -187,7 +187,7 @@ subquestion: |
 
   then these forms may not apply to your situation. You can use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
   
-  Learn about [**evicting a tenant**](https://www.illinoislegalaid.org/node/29691).
+  Learn about [**the eviction process**](https://www.illinoislegalaid.org/node/29691).
 field: sees_nav_bar
 ---
 id: instructions
@@ -407,7 +407,7 @@ subquestion: |
 
     ${ collapse_template(cure_example) } 
 
-  Learn more about **[evicting a tenant](https://www.illinoislegalaid.org/node/29691)**.
+  Learn more about **[the eviction process](https://www.illinoislegalaid.org/node/29691)**.
 field: forms_to_assemble
 choices:
   - Notice or Demand: notice
@@ -993,6 +993,8 @@ question: |
   What is the ${ ordinal(i) } tenant's name?
   % endif
 subquestion: |
+  **Note:** Do not name children on eviction notices. After January 1, 2026, naming minors or people who were minors when the lease was signed will result in an eviction case being dismissed. Minors who are named in eviction cases can also seek damages (sue for money).
+  
   ${ collapse_template(tenant_or_occupant_help) }  
 fields:
   - code: |
