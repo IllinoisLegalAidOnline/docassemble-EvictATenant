@@ -993,7 +993,7 @@ question: |
   What is the ${ ordinal(i) } tenant's name?
   % endif
 subquestion: |
-  **Note:** Do not name children on eviction notices. After January 1, 2026, naming minors or people who were minors when the lease was signed will result in an eviction case being dismissed. Minors who are named in eviction cases can also seek damages (sue for money).
+  **Note:** Do not name children on eviction notices. Naming minors or people who were minors when the lease was signed will result in an eviction case being dismissed. Minors who are named in eviction cases can also seek damages (sue for money).
   
   ${ collapse_template(tenant_or_occupant_help) }  
 fields:
