@@ -177,8 +177,8 @@ subquestion: |
 
   You can use these forms if you:
   
-  * Have a written or oral (spoken) lease with the tenant, even if you are related, or
-  * Need to evict someone who you didn't agree could live there.
+  * Have a written or spoken (oral) agreement to let an adult live in your property, even if you are related to them, or
+  * Need to evict someone who you did not agree could live there.
 
   **Note:** If you are a landlord and want to evict:
 
@@ -187,7 +187,7 @@ subquestion: |
 
   then these forms may not apply to your situation. You can use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
   
-  Learn about [**the eviction process**](https://www.illinoislegalaid.org/node/29691).
+  To learn more, read ILAO's article about [**Going to court for an eviction case**](https://www.illinoislegalaid.org/node/31071).
 field: sees_nav_bar
 ---
 id: instructions
@@ -198,9 +198,9 @@ subquestion: |
   To use this program you will need: 
 
   * The address of the property including any unit number,
-  * Details about violations of the lease,
+  * Details about violations of the lease, if any,
   * How much rent is due, if any,
-  * The written lease if you have one, and
+  * The written lease if you have a copy, and
   * Your address and contact information.
 
   Set aside 10 to 15 minutes to finish this program. You can log in and save your work to continue later. 
@@ -221,14 +221,16 @@ continue button field: eviction_overview
 question: |
   How to evict a tenant
 subquestion: |
-  To evict a tenant in Illinois, you need to do 2 things:
+  To evict a tenant in Illinois, you usually need to do two things:
   
   1. Deliver a written **{Notice}** or **{Demand}** to the tenant, and
   2. File an **{Eviction Complaint}** with the court and win the case.
   
   If you win the court case, you can ask the sheriff to enforce the **{Eviction Order}** to evict the tenant.
+
+  **Note:** Different rules may apply in some situations. See ILAO's articles about [**Evicting friends, unmarried partners, and family members**](http://illinoislegalaid.org/node/189286) and [**Trespassers and squatters**](https://illinoislegalaid.org/node/189306) .
   
-  Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. Read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
+  Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. For more information, read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
 ---
 #id: accept terms
 # replaced by question in ILAO package
@@ -359,26 +361,27 @@ id: eviction reason
 question: |
   Why do you want to evict your tenant?
 subquestion: |
-
+  If you need help, see ILAO's articles:
+  
+  * [**Dealing with unpaid rent (FAQ)**](http://illinoislegalaid.org/node/163856)
+  * [**Addressing lease violations (FAQ)**](http://illinoislegalaid.org/node/170646)
+  * [**Ending a lease (FAQ)**](http://illinoislegalaid.org/node/189201), and
+  * [**Trespassers and squatters (FAQ)**](https://illinoislegalaid.org/node/189306).
+  
   ${ collapse_template(eviction_reason_help) }
 field: eviction_reason
 choices:
   - They owe rent.: overdue rent
-    help: |
-      This is for rent only. If they owe money for other things like utilities, late fees, or other fees, it would be considered violating a term of the lease.
-  - They violated a term of the lease.: lease violation
+  - They violated a term of the lease or engaged in criminal activity.: lease violation
   - Their lease is ending, and you do not want to renew.: non-renewal
-  - The people in the property have no right to stay there.: no right to stay
+  - The people in the property have no right to stay there, like squatters or trespassers.: no right to stay
     help: |
-      This includes:
-    
-      * Trespassers, or
-      * Other people who entered the property legally and refuse to leave.
+      This includes people who entered the property legally and refuse to leave.
   - None of the above: none
 ---
 template: eviction_reason_help
 subject: |
-  **What if I have more than one reason?**
+  **What to do if you have more than one reason**
 content: |  
   There are different legal requirements for different kinds of evictions. The forms that this program makes are designed for evicting a tenant for a single reason. If you want to evict a tenant for more than one reason, you may want to talk with a lawyer.
   
@@ -398,16 +401,20 @@ id: which forms
 question: |
   What forms do you want to make?
 subquestion: |
-  To evict a tenant, you have to do 2 things:
+  To evict a tenant, you usually have to do two things:
   
   1. Give a **{Notice}** or **{Demand}** to the tenant, and 
-  2. File an **{Eviction Complaint}** in court **after** you wait the required number of days* based on the kind of eviction, the lease, and the law.
+  2. File an **{Eviction Complaint}** in court **after** you wait the required number of days based on the kind of eviction, the lease, and the law.
 
-  ***Note:** In some cases when evicting for not paying rent or violating the lease, the tenant can fix the problem in the required number of days to prevent being evicted for that reason.
+  To learn more, see ILAO's articles:
+  
+  * [**Written eviction notices (FAQ)**](http://illinoislegalaid.org/node/29666), and
+  * [**How eviction cases work (FAQ)**](http://illinoislegalaid.org/node/189216).
+  
+  **Note:** In some cases when evicting for not paying rent or violating the lease, the tenant can fix the problem in the required number of days to prevent being evicted for that reason.
 
     ${ collapse_template(cure_example) } 
 
-  Learn more about **[the eviction process](https://www.illinoislegalaid.org/node/29691)**.
 field: forms_to_assemble
 choices:
   - Notice or Demand: notice
@@ -434,7 +441,7 @@ subquestion: |
   This program can make forms only for the following types of evictions:
   
   * Your tenant is behind on rent,
-  * Your tenant violated the lease,
+  * Your tenant violated the lease or engaged in criminal activity,
   * Your tenant's lease is expiring, and you do not want to renew, or
   * People in the rental property have no right to be there.
   
@@ -490,7 +497,8 @@ subquestion: |
   ${ collapse_template(non_renewal_notice_period_help) } 
 fields:
   - Lease end date: lease_end_date
-    datatype: date
+    datatype: ThreePartsDate
+    #datatype: date
     #min: ${ today().plus(days=30).format("yyyy-MM-dd") }
 ---
 template: non_renewal_notice_period_help
@@ -1194,40 +1202,40 @@ subquestion: |
   % if other_parties[0].address.city.lower() == "chicago":
   
     * A unit in a hotel, motel, or rooming house (unless rent is paid monthly and is occupied for more than 32 days)
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A school dormitory, shelter, employee's quarters or non-residential rental property
     * A unit occupied by the buyer through a real estate purchase contract
     * An owner-occupied co-op or condominium
   % elif other_parties[0].address.city.lower() == "oak park": 
   
     * A hotel or motel
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A school dormitory
     * A temporary or transitional shelter
     * A unit occupied by your employee as a condition of their employment
     * A co-op
   % elif other_parties[0].address.city.lower() == "mount prospect" or other_parties[0].address.city.lower() == "mt prospect" or other_parties[0].address.city.lower() == "mt. prospect": 
   
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A residential care or retirement home
     * A hotel or motel
     * A unit occupied by the buyer through a real estate purchase contract
   % elif other_parties[0].address.city.lower() == "evanston": 
   
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A hotel or motel
     * A fraternity or social organization
     * A unit occupied by the buyer through a real estate purchase contract
     * A co-op
   % elif other_parties[0].address.city.lower() == "dekalb": 
   
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A hotel or motel
     * Government-owned
     * A rooming house
   % elif other_parties[0].address.city.lower() == "urbana": 
   
-    * A medical, educational, or relgious facility
+    * A medical, educational, or religious facility
     * A hotel or motel
     * A fraternity or social organization
     * A unit occupied by the buyer through a real estate purchase contract
