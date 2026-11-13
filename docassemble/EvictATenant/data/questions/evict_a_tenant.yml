@@ -228,7 +228,10 @@ subquestion: |
   
   If you win the court case, you can ask the sheriff to enforce the **{Eviction Order}** to evict the tenant.
 
-  **Note:** Different rules may apply in some situations. See ILAO's articles about [**Evicting friends, unmarried partners, and family members**](http://illinoislegalaid.org/node/189286) and [**Trespassers and squatters**](https://illinoislegalaid.org/node/189306) .
+  **Note:** Different rules may apply in some situations. See ILAO's articles about:
+  
+  * [**Evicting friends, unmarried partners, and family members**](http://illinoislegalaid.org/node/189286) and
+  * [**Trespassers and squatters**](https://illinoislegalaid.org/node/189306).
   
   Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. For more information, read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
 ---
@@ -430,7 +433,7 @@ content: |
   
   Example 1: Let's say you have a tenant who is behind on rent. You give them a *Notice* that gives them 5 days to pay it. If they pay in full within 5 days, they will be caught up and cannot be evicted for being behind on rent at that time.
 
-  Example 2: Let's say you have a tenant who has a friend living at the apartment for 3 months. The lease agreement says they can have guests for no more than 1 month at a time. You give them a *Notice* that gives them 10 days to fix the lease violation. If the friend moves out within the 10 days, the tenant will no longer be breaking the lease. They cannot be evicted for that lease violation.
+  Example 2: Let's say you have a tenant who has a friend living at the apartment for 3 months. The lease agreement says they can have guests for no more than one month at a time. You give them a *Notice* that gives them 10 days to fix the lease violation. If the friend moves out within the 10 days, the tenant will no longer be breaking the lease. They cannot be evicted for that lease violation.
 
 ---
 id: not valid reason for eviction
@@ -588,7 +591,7 @@ fields:
   - Date this rent is owed through: past_rent_owed_through
     datatype: date
     show if: past_rent_requested
-  - Future rent due through the date of judgment: use_and_occupancy
+  - Future rent due through the last date of possession (when the tenant moves out): use_and_occupancy
     datatype: yesnowide
   - Attorneys' fees (if applicable): attorneys_fees
     datatype: yesnowide
@@ -689,7 +692,7 @@ subquestion: |
 
   ${ collapse_template(attaching_documents) }
   
-  If you do not have the required documents, you should attach an *Affidavit – Supporting Documents Not Attached to Eviction Complaint*. If you do not attach either, your eviction case might be dismissed, and you will need to start over.
+  If you do not have the required documents, you should attach a *Missing Documents Affidavit*. If you do not attach either, your eviction case might be dismissed, and you will need to start over.
 
   The documents are:
   
@@ -850,7 +853,7 @@ subquestion: |
   
   [FILE eviction_complaint_attachments.png, 100%, Eviction Complaint page 2]
   
-  * The *Affidavit - Supporting Documents Not Attached to Eviction Complaint*, if necessary.
+  * The *Missing Documents Affidavit*, if necessary.
   
   [FILE affidavit.png, 75%, Affidavit of documents not attached]
   
@@ -880,7 +883,7 @@ validation code: |
 ---
 template: multiple_landlords_help
 subject: |
-  **What if there is more than 1 landlord or owner?**
+  **What if there is more than one landlord or owner?**
 content: |  
   Only one landlord or owner needs to give a Notice or Demand to the tenants, or file the *Eviction Complaint* with the court.
   
@@ -1049,13 +1052,15 @@ fields:
 id: summons intro
 continue button field: summons_intro
 question: |
-  Summons
+  Eviction Summons
 subquestion: |
-  In an eviction case, the court papers include an *Eviction Complaint* and a *Summons*. The *Summons* tells the tenants and occupants that you are asking the court for an eviction and gives them the court date.
+  In an eviction case, the court papers include an *Eviction Complaint* and an *Eviction Summons*. The *Eviction Summons* tells the tenants and occupants that you are asking the court for an eviction and gives them the court date.
   
-  You may have to pay the sheriff to deliver each *Summons*. This delivery is called "service."
+  You may have to pay the sheriff to deliver each *Eviction Summons*. This delivery is called "service."
   
-  If the *Summons* is not properly served by the sheriff, you might not get an *Eviction Order* or a money judgment.
+  If the *Eviction Summons* is not properly served by the sheriff, you might not get an *Eviction Order* or a money judgment.
+
+  **Note:** The first court date must be written on the *Eviction Summons*. It must be served on each of the tenants and occupants at least three days (seven days in Cook County) before the first court date.
 ---
 id: service method
 question: |
@@ -1066,27 +1071,29 @@ question: |
   % endif  
 subquestion: |
   In Illinois, Sheriffs usually serve *Eviction Complaints*.
+
+  If you want to use a person who is not the sheriff or a licensed process server to serve the Defendants, you must request permission from the court by filing a *Motion to Approve Process Server Who is Not Licensed*. You can use ILAO's [Request to approve an unlicensed process server](https://www.illinoislegalaid.org/node/165681) Easy Form to make the forms.
   
-  **Note:** There may be a charge for a special process server or a licensed private detective.
+  **Note:** There may be a charge for a private process server or a licensed private detective.
 fields:
   - no label: service_method
     datatype: radio
     choices:
       - Sheriff (most common): sheriff
-      - Special process server: sps
+      - Private process server: sps
       - Licensed private detective: detective
-      - I don't know. I will decide and complete the Summons later.: idk
+      - I don't know. I will decide and complete the Eviction Summons later.: idk
 ---
 id: extra summons required
 continue button field: extra_summons
 question: |
-  Additional Summons
+  Additional Eviction Summons
 subquestion: |
-  This program makes the *Summons* forms for the first 5 tenants, plus one for Unknown Occupants.
+  This program makes the *Eviction Summons* forms for the first 5 tenants, plus one for Unknown Occupants.
   
-  You will need to fill out *Summons* forms for the other tenants in your case. 
+  You will need to fill out *Eviction Summons* forms for the other tenants in your case. 
   
-  You can download blank *Summons* forms at the end of this program.
+  You can download blank *Eviction Summons* forms at the end of this program.
 ---
 id: tenant contact information
 question: |
@@ -1154,7 +1161,7 @@ question: |
 subquestion: |
   In some counties, the circuit clerk can give you a hearing date before you file your case. This is sometimes called the Return Date. If you have that information now, you can add it to your forms.
   
-  If the clerk gives you the hearing date after you file your *Eviction Complaint*, you can add it to your *Summons* later.
+  If the clerk gives you the hearing date after you file your *Eviction Complaint*, you can add it to your *Eviction Summons* later.
 fields:
   - "Know court date and time?": has_court_date
     datatype: yesnoradio
@@ -1163,7 +1170,7 @@ id: hearing info
 question: |
   Court hearing information
 subquestion: |
-  Enter the date, time, and courtroom information for your eviction case. If the clerk did not give you a courtroom yet, leave it blank. You can add this information to the *Summons* after you file your *Eviction Complaint*.
+  Enter the date, time, and courtroom information for your eviction case. If the clerk did not give you a courtroom yet, leave it blank. You can add this information to the *Eviction Summons* after you file your *Eviction Complaint*.
 fields:
   - Date: hearing_date
     datatype: date
@@ -1550,12 +1557,11 @@ subquestion: |
     <p>By signing your <i>Eviction Complaint</i>, you are certifying that:</p>
     <p><ul>
       <li>You read the document,</li>
-      <li>You believe it to be true and correct, and</li>
-      <li>You are not filing it for an improper purpose.</li>
+      <li>You have been informed and believe it is true and correct, and</li>
+      <li>You are not filing it to cause delay or for another bad reason.</li>
     </ul></p>
     <p>See the <a href="https://ilcourtsaudio.blob.core.windows.net/antilles-resources/resources/9ce1fce9-895f-463e-b87d-f9b7631f8fde/Rule%20137.pdf"><b>Illinois Supreme Court Rule 137</b></a> for more information.</p>
   </div>
-
 fields:
   - "Add e-signature?": e_signature
     datatype: yesnoradio
@@ -1635,13 +1641,13 @@ objects:
   - affidavit_of_service: ALDocument.using(title="Affidavit of service", filename="affidavit.pdf",  has_addendum=False)
   - eviction_complaint: ALDocument.using(title="Eviction Complaint", filename="complaint.pdf", has_addendum=False)
   - eviction_complaint_affidavit: ALDocument.using(title="Affidavit - Supporting Documents", filename="complaint_affidavit.pdf", has_addendum=False)
-  - eviction_summons: ALDocument.using(title="Summons", filename="summons.pdf", has_addendum=False)
-  - eviction_summons_2: ALDocument.using(title="Summons 2", filename="summons_2.pdf", has_addendum=False)
-  - eviction_summons_3: ALDocument.using(title="Summons 3", filename="summons_3.pdf", has_addendum=False)
-  - eviction_summons_4: ALDocument.using(title="Summons 4", filename="summons_4.pdf", has_addendum=False)
-  - eviction_summons_5: ALDocument.using(title="Summons 5", filename="summons_5.pdf", has_addendum=False)
-  - eviction_summons_blank: ALDocument.using(title="Summons (blank)", filename="summons_blank.pdf", has_addendum=False)
-  - eviction_summons_unknown: ALDocument.using(title="Summons Unknown Occupants", filename="summons_unknown_occupants.pdf", has_addendum=False)
+  - eviction_summons: ALDocument.using(title="Eviction Summons", filename="summons.pdf", has_addendum=False)
+  - eviction_summons_2: ALDocument.using(title="Eviction Summons 2", filename="summons_2.pdf", has_addendum=False)
+  - eviction_summons_3: ALDocument.using(title="Eviction Summons 3", filename="summons_3.pdf", has_addendum=False)
+  - eviction_summons_4: ALDocument.using(title="Eviction Summons 4", filename="summons_4.pdf", has_addendum=False)
+  - eviction_summons_5: ALDocument.using(title="Eviction Summons 5", filename="summons_5.pdf", has_addendum=False)
+  - eviction_summons_blank: ALDocument.using(title="Eviction Summons (blank)", filename="summons_blank.pdf", has_addendum=False)
+  - eviction_summons_unknown: ALDocument.using(title="Eviction Summons Unknown Occupants", filename="summons_unknown_occupants.pdf", has_addendum=False)
   - eviction_help_illinois: ALDocument.using(title="Eviction help Illinois", filename="eviction_help_illinois.pdf", has_addendum=False)
   - eviction_help_cook_county: ALDocument.using(title="Eviction help Cook County", filename="eviction_help_cook_county.pdf", has_addendum=False)
   - eviction_help_dupage_county: ALDocument.using(title="Eviction help DuPage County", filename="eviction_help_dupage_county.pdf", has_addendum=False)
@@ -1726,16 +1732,16 @@ code: |
 #  eviction_help_winnebago_county.enabled = True
 ---
 code: |
-  summons_bundle.title = "Summons"
-  summons_2_bundle.title = "Summons 2"
-  summons_3_bundle.title = "Summons 3"
-  summons_4_bundle.title = "Summons 4"
-  summons_5_bundle.title = "Summons 5"
-  summons_blank_bundle.title = "Summons (blank)"
-  summons_unknown_bundle.title = "Summons Unknown Occupants"
+  summons_bundle.title = "Eviction Summons"
+  summons_2_bundle.title = "Eviction Summons 2"
+  summons_3_bundle.title = "Eviction Summons 3"
+  summons_4_bundle.title = "Eviction Summons 4"
+  summons_5_bundle.title = "Eviction Summons 5"
+  summons_blank_bundle.title = "Eviction Summons (blank)"
+  summons_unknown_bundle.title = "Eviction Summons Unknown Occupants"
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="Download all forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="All forms")
   - al_court_bundle: ALDocumentBundle.using(elements=[eviction_complaint, eviction_complaint_affidavit, eviction_summons, eviction_summons_2, eviction_summons_3, eviction_summons_4, eviction_summons_5, eviction_summons_unknown], filename="eviction_forms.pdf", title="Eviction forms")
   - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons.pdf")  
   - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_2.pdf")  
@@ -1802,8 +1808,7 @@ attachment:
       - "other_notice_checkbox": ${ True if notice_period != 5 else False }
       - "notice_period": ${ notice_period if notice_period != 5 else "" }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_one_line": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
@@ -2483,7 +2488,7 @@ review:
       % if service_method == "sheriff":
       By the sheriff
       % elif service_method == "sps":
-      By a special process server
+      By a private process server
       % elif service_method == "detective":
       By a licensed private detective
       % else:
@@ -2842,7 +2847,7 @@ review:
       % if service_method == "sheriff":
       By the sheriff
       % elif service_method == "sps":
-      By a special process server
+      By a private process server
       % elif service_method == "detective":
       By a licensed private detective
       % else:
