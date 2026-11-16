@@ -121,6 +121,7 @@ code: |
     courthouse_info
     if has_court_date:
       hearing_date
+    attend_court
     e_signature
 
   nav.set_section('section_about_you')
@@ -1183,7 +1184,59 @@ fields:
   - Courtroom: courtroom
     maxlength: 10
     required: False
+---
+id: court date appearance info
+question: |
+  How to attend the court date
+subquestion: |
+  The first court date could be in person, by phone, or by video. If the court date is by phone or video, it is called a "Remote" court date.
+  
+  Enter the court date details below. If the clerk did not give you this information yet, leave it blank. You can add it to the *Eviction Summons* after you get the information from the clerk.
+  
+  **Note:** Be sure to add the court date information to your *Eviction Summons* before you have it served on the tenants.
 
+  ${ collapse_template(hearing_info_help) }  
+fields:
+  - How to attend court (check all that apply): attend_court
+    datatype: checkboxes
+    choices:
+      - In person: in_person
+      - Remotely: remote
+    none of the above: |
+      I don't know. I will add this to my forms later.
+  - Video conference website (URL): remote_website
+    maxlength: 100
+    input type: area
+    rows: 2
+    required: False
+    show if:
+      variable: attend_court['remote']
+      is: True
+  - Video conference log-in information (Meeting ID, password, etc.): remote_login
+    maxlength: 100
+    input type: area
+    rows: 2
+    required: False
+    show if:
+      variable: attend_court['remote']
+      is: True
+  - Call-in phone number for remote appearance: remote_phone
+    datatype: al_international_phone
+    required: False
+    show if:
+      variable: attend_court['remote']
+      is: True
+
+---
+template: hearing_info_help
+subject: |
+  **See where to put hearing information on your forms**
+content: |  
+  You can put information on how to attend court on the top of page 2 of your *Eviction Summons*.
+
+  We will add the courtroom address to your forms. To get the other information, contact your Circuit Clerk. You can look up how to contact them using [**Find Your Court**](https://www.illinoiscourts.gov/courts-directory/interactive-map/by-court-type/) on the Illinois Courts website.
+  
+  [FILE summons_hearing_information.png, 100%, Part of Eviction Summons form]
 ---
 id: owner occupied
 question: |
@@ -1907,6 +1960,7 @@ attachment:
       - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_complaint_affidavit[i]
@@ -1938,8 +1992,7 @@ attachment:
       - "lease_other_reason": ${ lease_not_attached_other_reason if (lease_not_attached_other and attach_lease == "No") else "" }
       - "e_signature": ${ users[0].name_full() if e_signature else '' }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 
@@ -1962,7 +2015,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
       - "tenant_email": ${ other_parties[0].email }
-      - "tenant_name__2": ${ other_parties[0].name_full() if other_parties[0].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[0].alt_address.line_one(bare=True) if other_parties[0].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[0].alt_address.line_two()  if other_parties[0].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[0].mobile_number) if other_parties[0].has_alt_address else "" }
@@ -1972,24 +2024,33 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
       - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
       - "hearing_courtroom": ${ courtroom if has_court_date else '' }
-      - "courthouse_address": ${ courthouse_info }
+      - "in_person_cb": ${ attend_court['in_person'] }
+      - "remote_cb": ${ attend_court['remote'] }
+      - "remote_url": ${ remote_website if attend_court['remote'] == True else '' }
+      - "remote_login": ${ remote_login if attend_court['remote'] == True else ''}
+      - "remote_phone": ${ phone_number_formatted(remote_phone) if attend_court['remote'] == True else '' }
+      - "courthouse_address": |
+          % if courtroom != "":          
+          ${ courthouse_info + ", Room # " + courtroom }
+          % else:
+          ${ courthouse_info }          
+          % endif
       - "clerk_phone": ${ trial_court.phone }
-      - "clerk_website": ${ trial_court.website }
+      - "clerk_website": ${ trial_court.website }    
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_2[i]
@@ -2008,7 +2069,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[1].phone_number) }
       - "tenant_email": ${ other_parties[1].email }
-      - "tenant_name__2": ${ other_parties[1].name_full() if other_parties[1].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[1].alt_address.line_one(bare=True) if other_parties[1].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[1].alt_address.line_two()  if other_parties[1].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[1].mobile_number) if other_parties[1].has_alt_address else "" }
@@ -2018,24 +2078,33 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
       - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
       - "hearing_courtroom": ${ courtroom if has_court_date else '' }
-      - "courthouse_address": ${ courthouse_info }
+      - "in_person_cb": ${ attend_court['in_person'] }
+      - "remote_cb": ${ attend_court['remote'] }
+      - "remote_url": ${ remote_website if attend_court['remote'] == True else '' }
+      - "remote_login": ${ remote_login if attend_court['remote'] == True else ''}
+      - "remote_phone": ${ phone_number_formatted(remote_phone) if attend_court['remote'] == True else '' }
+      - "courthouse_address": |
+          % if courtroom != "":          
+          ${ courthouse_info + ", Room # " + courtroom }
+          % else:
+          ${ courthouse_info }          
+          % endif
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_3[i]
@@ -2054,7 +2123,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[2].phone_number) }
       - "tenant_email": ${ other_parties[2].email }
-      - "tenant_name__2": ${ other_parties[2].name_full() if other_parties[2].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[2].alt_address.line_one(bare=True) if other_parties[2].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[2].alt_address.line_two()  if other_parties[2].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[2].mobile_number) if other_parties[2].has_alt_address else "" }
@@ -2064,24 +2132,33 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
       - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
       - "hearing_courtroom": ${ courtroom if has_court_date else '' }
-      - "courthouse_address": ${ courthouse_info }
+      - "in_person_cb": ${ attend_court['in_person'] }
+      - "remote_cb": ${ attend_court['remote'] }
+      - "remote_url": ${ remote_website if attend_court['remote'] == True else '' }
+      - "remote_login": ${ remote_login if attend_court['remote'] == True else ''}
+      - "remote_phone": ${ phone_number_formatted(remote_phone) if attend_court['remote'] == True else '' }
+      - "courthouse_address": |
+          % if courtroom != "":          
+          ${ courthouse_info + ", Room # " + courtroom }
+          % else:
+          ${ courthouse_info }          
+          % endif
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_4[i]
@@ -2100,7 +2177,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[3].phone_number) }
       - "tenant_email": ${ other_parties[3].email }
-      - "tenant_name__2": ${ other_parties[3].name_full() if other_parties[3].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[3].alt_address.line_one(bare=True) if other_parties[3].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[3].alt_address.line_two()  if other_parties[3].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[3].mobile_number) if other_parties[3].has_alt_address else "" }
@@ -2110,24 +2186,33 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
       - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
       - "hearing_courtroom": ${ courtroom if has_court_date else '' }
-      - "courthouse_address": ${ courthouse_info }
+      - "in_person_cb": ${ attend_court['in_person'] }
+      - "remote_cb": ${ attend_court['remote'] }
+      - "remote_url": ${ remote_website if attend_court['remote'] == True else '' }
+      - "remote_login": ${ remote_login if attend_court['remote'] == True else ''}
+      - "remote_phone": ${ phone_number_formatted(remote_phone) if attend_court['remote'] == True else '' }
+      - "courthouse_address": |
+          % if courtroom != "":          
+          ${ courthouse_info + ", Room # " + courtroom }
+          % else:
+          ${ courthouse_info }          
+          % endif
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_5[i]
@@ -2146,7 +2231,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ phone_number_formatted(other_parties[4].phone_number) }
       - "tenant_email": ${ other_parties[4].email }
-      - "tenant_name__2": ${ other_parties[4].name_full() if other_parties[4].has_alt_address else "" }
       - "alt_service_address_street": ${ other_parties[4].alt_address.line_one(bare=True) if other_parties[4].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[4].alt_address.line_two()  if other_parties[4].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[4].mobile_number) if other_parties[4].has_alt_address else "" }
@@ -2156,7 +2240,6 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
@@ -2166,14 +2249,14 @@ attachment:
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_unknown[i]
@@ -2192,7 +2275,6 @@ attachment:
       - "service_address_csz": ${ other_parties[0].address.line_two() }
       - "tenant_phone": ${ "" }
       - "tenant_email": ${ "" }
-      - "tenant_name__2": ${ "" }
       - "alt_service_address_street": ${ "" }
       - "alt_service_address_csz": ${ "" }
       - "alt_tenant_phone": ${ "" }
@@ -2202,24 +2284,33 @@ attachment:
       - "sheriff_county_state": ${  }
       - "service_method_sps": ${ True if service_method == "sps" else "" }
       - "service_method_detective": ${ True if service_method == "detective" else "" }
-      - "landlord_checkbox": ${ True }
       - "hearing_date": ${ hearing_date if (defined('hearing_date') and has_court_date) else '' }
       - "hearing_time": ${ format_time(hearing_time, format='h:mm') if (defined('hearing_time') and has_court_date) else '' }
       - "hearing_am_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='AM') else '' }
       - "hearing_pm_checkbox": ${ True if (has_court_date and format_time(hearing_time, format='a')=='PM') else '' }
       - "hearing_courtroom": ${ courtroom if has_court_date else '' }
-      - "courthouse_address": ${ courthouse_info }
+      - "in_person_cb": ${ attend_court['in_person'] }
+      - "remote_cb": ${ attend_court['remote'] }
+      - "remote_url": ${ remote_website if attend_court['remote'] == True else '' }
+      - "remote_login": ${ remote_login if attend_court['remote'] == True else ''}
+      - "remote_phone": ${ phone_number_formatted(remote_phone) if attend_court['remote'] == True else '' }
+      - "courthouse_address": |
+          % if courtroom != "":          
+          ${ courthouse_info + ", Room # " + courtroom }
+          % else:
+          ${ courthouse_info }          
+          % endif
       - "clerk_phone": ${ trial_court.phone }
       - "clerk_website": ${ trial_court.website }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
       - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
+      - "for_yourself": ${ True }
 ---
 attachment:
   variable name: eviction_summons_blank[i]
@@ -2556,9 +2647,40 @@ review:
   - Edit: courtroom
     button: |
       **Courtroom:**
+      % if courtroom != "":
       ${ courtroom }
+      % else:
+      None entered
+      % endif
     show if: has_court_date
-
+  - Edit: attend_court
+    button: |
+      **How can parties attend court?**
+      
+      % if attend_court['in_person'] == True:
+        * In person
+      % endif
+      % if attend_court['remote'] == True:
+        * Remotely
+      % endif
+      % if attend_court['in_person'] == False and attend_court['remote'] == False:
+        * I don't know. I will add this to my forms later. 
+      % endif
+  - Edit: remote_website
+    button: |
+      **Video conference website (URL):**
+      ${ remote_website }
+    show if: attend_court['remote'] == True
+  - Edit: remote_login
+    button: |
+      **Video conference log-in information:**
+      ${ remote_login }
+    show if: attend_court['remote'] == True
+  - Edit: remote_phone
+    button: |
+      **Call-in phone number for remote appearance:**
+      ${ phone_number_formatted(remote_phone) }
+    show if: attend_court['remote'] == True
 ---
 id: edit the tenants review screen
 continue button field: other_parties.revisit
@@ -2899,8 +3021,40 @@ review:
   - Edit: courtroom
     button: |
       **Courtroom:**
+      % if courtroom != "":
       ${ courtroom }
+      % else:
+      None entered
+      % endif
     show if: has_court_date
+  - Edit: attend_court
+    button: |
+      **How can parties attend court?**
+      
+      % if attend_court['in_person'] == True:
+        * In person
+      % endif
+      % if attend_court['remote'] == True:
+        * Remotely
+      % endif
+      % if attend_court['in_person'] == False and attend_court['remote'] == False:
+        * I don't know. I will add this to my forms later. 
+      % endif
+  - Edit: remote_website
+    button: |
+      **Video conference website (URL):**
+      ${ remote_website }
+    show if: attend_court['remote'] == True
+  - Edit: remote_login
+    button: |
+      **Video conference log-in information:**
+      ${ remote_login }
+    show if: attend_court['remote'] == True
+  - Edit: remote_phone
+    button: |
+      **Call-in phone number for remote appearance:**
+      ${ phone_number_formatted(remote_phone) }
+    show if: attend_court['remote'] == True
 
 ---
 id: about you review screen
