@@ -588,7 +588,10 @@ fields:
     datatype: currency
     min: 1
     show if: past_rent_requested
-  - Date this rent is owed through: past_rent_owed_through
+  - Date this past due rent is owed from: past_rent_owed_from
+    datatype: date
+    show if: past_rent_requested
+  - Date this past due rent is owed through: past_rent_owed_through
     datatype: date
     show if: past_rent_requested
   - Future rent due through the last date of possession (when the tenant moves out): use_and_occupancy
@@ -1873,7 +1876,7 @@ attachment:
   editable: False
   pdf template file: eviction_complaint.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -1889,6 +1892,7 @@ attachment:
       - "overstayed_checkbox": ${ True if eviction_reason == "no right to stay" and no_right_to_stay_type == "overstay" else False }
       - "past_due_rent_checkbox": ${ past_rent_requested }
       - "past_due_rent_amount": ${ thousands(past_rent_due, show_decimals=True) if past_rent_requested else "" }
+      - "past_rent_owed_from": ${ past_rent_owed_from if past_rent_requested else "" }
       - "past_rent_owed_through": ${ past_rent_owed_through if past_rent_requested else "" }
       - "use_occupancy_checkbox": ${ use_and_occupancy }
       - "attorney_fees_checkbox": ${ attorneys_fees }
@@ -1900,8 +1904,7 @@ attachment:
       - "other_supporting_documents": ${ other_attachments.replace("\n", " ").replace("\r", " ") }
       - "e_signature": ${ users[0].name_full() if e_signature else '' }
       - "landlord_name": ${ users[0].name_full() }
-      - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
-      - "landlord_address_csz": ${ users[0].address.line_two() }
+      - "landlord_address_full": ${ users[0].address.on_one_line(bare=True) }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
 ---
@@ -1913,7 +1916,7 @@ attachment:
   editable: False
   pdf template file: affidavit_docs_not_attached.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -1950,7 +1953,7 @@ attachment:
   pdf template file: eviction_summons.pdf
   fields:
       #old - "county": ${ other_parties[0].address.county.lower().replace(' county', '').upper() }
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -1963,8 +1966,7 @@ attachment:
       - "alt_service_address_street": ${ other_parties[0].alt_address.line_one(bare=True) if other_parties[0].has_alt_address else "" }
       - "alt_service_address_csz": ${ other_parties[0].alt_address.line_two()  if other_parties[0].has_alt_address else ""}
       - "alt_tenant_phone": ${ phone_number_formatted(other_parties[0].mobile_number) if other_parties[0].has_alt_address else "" }
-      - "alt_tenant_email": ${ other_parties[0].alt_email if other_parties[0].has_alt_address else "" }
-     
+      - "alt_tenant_email": ${ other_parties[0].alt_email if other_parties[0].has_alt_address else "" }     
       - "sheriff_checkbox": ${ True if service_method == "sheriff" else "" }
       - "sheriff_outside_il_checkbox": ${  }
       - "sheriff_county_state": ${  }
@@ -1984,7 +1986,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -1997,7 +1999,7 @@ attachment:
   editable: False
   pdf template file: eviction_summons.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -2030,7 +2032,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -2043,7 +2045,7 @@ attachment:
   editable: False
   pdf template file: eviction_summons.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -2076,7 +2078,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -2089,7 +2091,7 @@ attachment:
   editable: False
   pdf template file: eviction_summons.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -2122,7 +2124,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -2135,7 +2137,7 @@ attachment:
   editable: False
   pdf template file: eviction_summons.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -2168,7 +2170,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -2181,7 +2183,7 @@ attachment:
   editable: False
   pdf template file: eviction_summons.pdf
   fields:
-      - "county": ${ trial_court.address.county.upper() }
+      - "county": ${ trial_court.address.county }
       - "plaintiffs": ${ users.full_names() }
       - "defendants": ${ other_parties.full_names() }
       - "unknown_checkbox": ${ unknown_occupants }
@@ -2214,7 +2216,7 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
-      - "county__2": ${ trial_court.address.county.upper() }
+      - "county__2": ${ trial_court.address.county }
       - "plaintiffs__2": ${ users.full_names() }
       - "defendants__2": ${ other_parties.full_names() }
       - "unknown_checkbox__2": ${ unknown_occupants }
@@ -2377,6 +2379,11 @@ review:
     button: |
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: past_rent_owed_from
+    button: |
+      **Past rent due from:**
+      ${ past_rent_owed_from }
     show if: past_rent_requested
   - Edit: past_rent_owed_through
     button: |
@@ -2736,6 +2743,11 @@ review:
     button: |
       **Past rent amount:**
       ${ thousands(past_rent_due, show_decimals=True) }
+    show if: past_rent_requested
+  - Edit: past_rent_owed_from
+    button: |
+      **Past rent due from:**
+      ${ past_rent_owed_from }
     show if: past_rent_requested
   - Edit: past_rent_owed_through
     button: |
