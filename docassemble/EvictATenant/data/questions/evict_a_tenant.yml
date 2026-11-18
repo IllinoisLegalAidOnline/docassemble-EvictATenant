@@ -523,21 +523,21 @@ continue button field: nonrenewal_notice
 question: |
   Required notice period
 subquestion: |
-  When you decide not to renew a lease, you need to let the tenants know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
+  When you decide not to renew a lease, you need to let the tenant know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
 
-  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must give tenants notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends.
+  Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must give the tenant notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends.
   
   Note: Your lease agreement may require a longer notice period.
   
   If your *Notice* does not give your tenant the required number of days advance notice, and you file an eviction case, it may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
 
-  Be sure to complete this part of the *Notice* before you give it to your tenants.
+  Be sure to complete this part of the *Notice* before you give it to your tenant.
 
   [FILE nonrenwal_notice_checkboxes.png, 100%, Nonrenewal notice period checkboxes]
 ---
 id: tenancy duration
 question: |
-  How long have the tenants lived in the property?
+  How long has the tenant lived in the property?
 field: tenancy_length
 choices:
   - Up to 6 months: Up to 6 months
@@ -549,7 +549,7 @@ continue button field: nonrenewal_notice_warning
 question: |
   Required notice period
 subquestion: |
-  When landlords decide not to renew a lease, they need to let their tenants know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
+  When landlords decide not to renew a lease, they need to let their tenant know ahead of time. This is called the notice period. Different laws in Illinois require different notice periods.
 
   Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_renew_period } days** is required. You must have given your tenant notice that you are not renewing the lease at least ${ rec_renew_period } days before the lease ends.
   
@@ -557,7 +557,7 @@ subquestion: |
   
   If your *Notice* does not give your tenant the required number of days advance notice, your eviction case may be dismissed. If your case is dismissed, you might need to start over with a new *Notice*.
 
-  Be sure to complete this part of the *Notice* before you give it to your tenants.
+  Be sure to complete this part of the *Notice* before you give it to your tenant.
 
   [FILE nonrenwal_notice_checkboxes.png, 100%, Nonrenewal notice period checkboxes]
   
@@ -572,12 +572,24 @@ subquestion: |
   * What they did, and
   * When they violated the lease.
 fields:
-  - What happened: lease_violation_details
+  - Explain how the tenant violated the lease: lease_violation_details
+    label above field: True
     input type: area
     rows: 10
-    maxlength: 550
+    maxlength: 600
   - note: |
-      The form has room for about **550 characters** including spaces.
+      The forms have room for about **600 characters** including spaces.
+  - Do you need more space to explain the lease violations?: has_more_lease_violations
+    datatype: yesnoradio
+  - Explain more about how the tenant violated the lease: more_lease_violation_details
+    label above field: True
+    input type: area
+    rows: 15
+    maxlength: 1000
+    show if: has_more_lease_violations
+  - note: |
+      The *Additional Lease Violations* form has room for about **1,000 characters** including spaces. This will be attached to your *Notice*. 
+    show if: has_more_lease_violations
 ---
 id: other remedies
 question: |
@@ -634,7 +646,7 @@ continue button field: notice_period_warning
 question: |
   Number of days to pay rent
 subquestion: |
-  Before filing an Eviction case in court for nonpayment of rent, landlords must give tenants time to pay what they owe. This is called the notice period. It is the number of days the tenant has to pay the rent they owe and avoid an eviction.
+  Before filing an Eviction case in court for nonpayment of rent, landlords must give their tenant time to pay what they owe. This is called the notice period. It is the number of days the tenant has to pay the rent they owe and avoid an eviction.
   
   Based on your answers, ${ applicable_law }. A notice period of at least **${ rec_notice_period } days** is required.
   
@@ -679,7 +691,7 @@ continue button field: cure_period_warning
 question: |
   Number of days to leave or fix problem
 subquestion: |
-  Before filing an Eviction case in court for a lease violation, landlords must give tenants time to leave the property. Sometimes, tenants may have a right to fix the issue. This is also known as a "right to cure." If the tenant does not have a right to fix the problem, the *Notice* must tell them when the lease will end.
+  Before filing an Eviction case in court for a lease violation, landlords must give their tenant time to leave the property. Sometimes, a tenant may have a right to fix the issue. This is also known as a "right to cure." If the tenant does not have a right to fix the problem, the *Notice* must tell them when the lease will end.
   
   Based on your answers, ${ applicable_law }. 
   % if rec_cure_allowed == True:
@@ -904,7 +916,7 @@ template: multiple_landlords_help
 subject: |
   **What if there is more than one landlord or owner?**
 content: |  
-  Only one landlord or owner needs to give a Notice or Demand to the tenants, or file the *Eviction Complaint* with the court.
+  Only one landlord or owner needs to give a Notice or Demand to the tenant, or file the *Eviction Complaint* with the court.
   
   If there are multiple landlords or owners, you may want to talk to a lawyer.  Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
 
@@ -948,7 +960,7 @@ fields:
 #  If you do not want to enter your personal email address, you can create a new email account to get email about your case.
 #  % endif  
 #fields:
-#  - Email: users[0].email    
+#  - Email: users[0].email
 #    datatype: email
 ---
 id: your contact information
@@ -956,7 +968,7 @@ question: |
   What is your contact information?
 subquestion: |
   % if forms_to_assemble == "notice":
-  The tenants might need to contact you.
+  The tenant might need to contact you.
   
   If you do not want to list a phone number on your forms, leave it blank.
 
@@ -1108,7 +1120,7 @@ continue button field: extra_summons
 question: |
   Additional Eviction Summons
 subquestion: |
-  This program makes the *Eviction Summons* forms for the first 5 tenants, plus one for Unknown Occupants.
+  This program makes the *Eviction Summons* forms for the first five tenants, plus one for Unknown Occupants.
   
   You will need to fill out *Eviction Summons* forms for the other tenants in your case. 
   
@@ -1706,6 +1718,7 @@ content: |
 objects:
   - eviction_instructions: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - notice_lease_violation: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
+  - additional_lease_violations: ALDocument.using(title="Additional Lease Violations", filename="additional_lease_violations.pdf",  has_addendum=False)
   - notice_nonpayment: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
   - notice_nonrenewal: ALDocument.using(title="Notice", filename="notice.pdf",  has_addendum=False)
   - demand_for_possession: ALDocument.using(title="Demand", filename="demand.pdf",  has_addendum=False)
@@ -1728,7 +1741,9 @@ objects:
 code: |
   eviction_instructions.enabled = True
   notice_nonpayment.enabled = False
+  notice_lease_violation_bundle.enabled = False
   notice_lease_violation.enabled = False
+  additional_lease_violations.enabled = False
   notice_nonrenewal.enabled = False
   demand_for_possession.enabled = False
   affidavit_of_service.enabled = False
@@ -1758,7 +1773,10 @@ code: |
       notice_nonpayment.enabled = True
       affidavit_of_service.enabled = True
     if eviction_reason == "lease violation":
+      notice_lease_violation_bundle.enabled = True
       notice_lease_violation.enabled = True
+      if has_more_lease_violations:
+        additional_lease_violations.enabled = True
       affidavit_of_service.enabled = True
     if eviction_reason == "non-renewal":
       notice_nonrenewal.enabled = True
@@ -1812,8 +1830,9 @@ code: |
   summons_unknown_bundle.title = "Eviction Summons Unknown Occupants"
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation_bundle, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="All forms")
   - al_court_bundle: ALDocumentBundle.using(elements=[eviction_complaint, eviction_complaint_affidavit, eviction_summons, eviction_summons_2, eviction_summons_3, eviction_summons_4, eviction_summons_5, eviction_summons_unknown], filename="eviction_forms.pdf", title="Eviction forms")
+  - notice_lease_violation_bundle: ALDocumentBundle.using(elements=[notice_lease_violation, additional_lease_violations], filename="notice.pdf")  
   - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons.pdf")  
   - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_2.pdf")  
   - summons_3_bundle: ALDocumentBundle.using(elements=[eviction_summons_3, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_3.pdf")  
@@ -1846,6 +1865,7 @@ attachment:
       - "property_unit": ${ other_parties[0].address.unit }
       - "property_address_csz": ${ other_parties[0].address.line_two() }
       - "lease_violations": ${ lease_violation_details.replace("\n", " ").replace("\r", " ") }
+      - "more_lease_violations_cb": ${ has_more_lease_violations }
       - "property_street_address__2": ${ other_parties[0].address.address }
       - "property_unit__2": ${ other_parties[0].address.unit }
       - "property_address_csz__2": ${ other_parties[0].address.line_two() }
@@ -1858,6 +1878,17 @@ attachment:
       - "landlord_address_csz": ${ users[0].address.line_two() }
       - "landlord_phone": ${ phone_number_formatted(users[0].phone_number) }
       - "landlord_email": ${ users[0].email if users[0].email_notice else '' }
+---
+attachment:
+  variable name: additional_lease_violations[i]
+  name: additional_lease_violations
+  filename: additional_lease_violations
+  skip undefined: True
+  editable: False
+  pdf template file: additional_lease_violations.pdf
+  fields:
+      - "more_lease_violations": ${ more_lease_violation_details }
+
 ---
 attachment:
   variable name: notice_nonpayment[i]
@@ -2443,7 +2474,7 @@ review:
       ${ word(yesno(is_ordinance_property)) }
   - Edit: other_parties.revisit
     button: |
-      **Tenants: (Edit to change names and contact info)**
+      **Tenants: (Edit to change names, contact, and service info)**
 
       % for my_var in other_parties:
         * ${ my_var.name_full() }
@@ -2478,9 +2509,19 @@ review:
     show if: eviction_reason == "overdue rent"
   - Edit: lease_violation_details
     button: |
-      **How tenant violated the lease:**
+      **How the tenant violated the lease:**
       ${lease_violation_details}
     show if: eviction_reason == "lease violation"
+  - Edit: has_more_lease_violations
+    button: |
+      **Additional lease violations?**
+      ${ word(yesno(has_more_lease_violations)) }
+    show if: eviction_reason == "lease violation"
+  - Edit: more_lease_violation_details
+    button: |
+      **More details about how the tenant violated the lease:**
+      ${more_lease_violation_details}
+    show if: eviction_reason == "lease violation" and has_more_lease_violations == True
   - Edit: cure_allowed
     button: |
       **Tenant has right to fix lease violation:**
@@ -2730,7 +2771,7 @@ id: edit the tenants review screen
 continue button field: other_parties.revisit
 section: Basic info
 question: |
-    Edit the tenants
+    Edit the tenant information
 subquestion: |
   ${ other_parties.table }
 
@@ -2820,9 +2861,9 @@ review:
   - Edit: other_parties.revisit
     button: |
       % if eviction_reason == "no right to stay":
-      **Occupants: (Edit to change names and contact info)**
+      **Occupants: (Edit to change names, contact, and service info)**
       % else:
-      **Tenants: (Edit to change names and contact info)**
+      **Tenants: (Edit to change names, contact, and service info)**
       % endif
 
       % for my_var in other_parties:
@@ -2867,9 +2908,19 @@ review:
     show if: eviction_reason == "overdue rent"
   - Edit: lease_violation_details
     button: |
-      **How tenant violated the lease:**
+      **How the tenant violated the lease:**
       ${lease_violation_details}
     show if: eviction_reason == "lease violation"
+  - Edit: has_more_lease_violations
+    button: |
+      **Additional lease violations?**
+      ${ word(yesno(has_more_lease_violations)) }
+    show if: eviction_reason == "lease violation"
+  - Edit: more_lease_violation_details
+    button: |
+      **More details about how the tenant violated the lease:**
+      ${more_lease_violation_details}
+    show if: eviction_reason == "lease violation" and has_more_lease_violations == True
   - Edit: cure_allowed
     button: |
       **Tenant has right to fix lease violation:**
