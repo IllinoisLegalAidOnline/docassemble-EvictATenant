@@ -571,8 +571,10 @@ subquestion: |
   * Who violated the lease,
   * What they did, and
   * When they violated the lease.
+
+  Describe each violation in detail.
 fields:
-  - Explain how the tenant violated the lease: lease_violation_details
+  - "**You have violated the lease by:**": lease_violation_details
     label above field: True
     input type: area
     rows: 10
@@ -581,15 +583,24 @@ fields:
       The forms have room for about **600 characters** including spaces.
   - Do you need more space to explain the lease violations?: has_more_lease_violations
     datatype: yesnoradio
-  - Explain more about how the tenant violated the lease: more_lease_violation_details
+    show if:
+      code: |
+        forms_to_assemble != "complaint"
+  - "**You have violated the lease by:**": more_lease_violation_details
     label above field: True
     input type: area
-    rows: 15
-    maxlength: 1000
-    show if: has_more_lease_violations
+    rows: 22
+    maxlength: 1300
+    js show if:
+      val("has_more_lease_violations") && ${ json.dumps(forms_to_assemble) } != "complaint"  
   - note: |
-      The *Additional Lease Violations* form has room for about **1,000 characters** including spaces. This will be attached to your *Notice*. 
-    show if: has_more_lease_violations
+      The *Additional Lease Violations* form has room for about **1,300 characters** including spaces. This will be attached to your *Notice*. 
+    js show if:
+      val("has_more_lease_violations") && ${ json.dumps(forms_to_assemble) } != "complaint"  
+  - note: |
+      **Note:** This additional information will not appear on the *Eviction Complaint*. You need to attach the *Notice* and *Additional Lease Violations* forms to the *Eviction Complaint* before you file it. 
+    js show if:
+      val("has_more_lease_violations") && ${ json.dumps(forms_to_assemble) } === "both" 
 ---
 id: other remedies
 question: |
@@ -1832,7 +1843,7 @@ code: |
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[eviction_instructions, notice_nonpayment, notice_lease_violation_bundle, notice_nonrenewal, demand_for_possession, affidavit_of_service, eviction_complaint, eviction_complaint_affidavit, summons_bundle, summons_2_bundle, summons_3_bundle, summons_4_bundle, summons_5_bundle, summons_blank_bundle, summons_unknown_bundle], filename="eviction_forms.pdf", title="All forms")
   - al_court_bundle: ALDocumentBundle.using(elements=[eviction_complaint, eviction_complaint_affidavit, eviction_summons, eviction_summons_2, eviction_summons_3, eviction_summons_4, eviction_summons_5, eviction_summons_unknown], filename="eviction_forms.pdf", title="Eviction forms")
-  - notice_lease_violation_bundle: ALDocumentBundle.using(elements=[notice_lease_violation, additional_lease_violations], filename="notice.pdf")  
+  - notice_lease_violation_bundle: ALDocumentBundle.using(elements=[notice_lease_violation, additional_lease_violations], filename="notice.pdf", title="Notice")  
   - summons_bundle: ALDocumentBundle.using(elements=[eviction_summons, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons.pdf")  
   - summons_2_bundle: ALDocumentBundle.using(elements=[eviction_summons_2, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_2.pdf")  
   - summons_3_bundle: ALDocumentBundle.using(elements=[eviction_summons_3, eviction_help_illinois, eviction_help_cook_county, eviction_help_dupage_county], filename="summons_3.pdf")  
@@ -1870,9 +1881,9 @@ attachment:
       - "property_unit__2": ${ other_parties[0].address.unit }
       - "property_address_csz__2": ${ other_parties[0].address.line_two() }
       - "cure_allowed_yes": ${ cure_allowed }
-      - "cure_period": ${ cure_period }
+      - "cure_period": ${ cure_period if cure_allowed else "" }
       - "cure_allowed_no": ${ cure_allowed == False }
-      - "lease_end_period": ${ lease_end_period }
+      - "lease_end_period": ${ lease_end_period if cure_allowed == False else "" }
       - "landlord_name": ${ users[0].name_full() }
       - "landlord_address_line_1": ${ users[0].address.line_one(bare=True) }
       - "landlord_address_csz": ${ users[0].address.line_two() }
@@ -1887,7 +1898,7 @@ attachment:
   editable: False
   pdf template file: additional_lease_violations.pdf
   fields:
-      - "more_lease_violations": ${ more_lease_violation_details }
+      - "more_lease_violations": ${ more_lease_violation_details.replace("\n", " ").replace("\r", " ") }
 
 ---
 attachment:
@@ -2516,12 +2527,12 @@ review:
     button: |
       **Additional lease violations?**
       ${ word(yesno(has_more_lease_violations)) }
-    show if: eviction_reason == "lease violation"
+    show if: eviction_reason == "lease violation" and forms_to_assemble != "complaint"
   - Edit: more_lease_violation_details
     button: |
       **More details about how the tenant violated the lease:**
       ${more_lease_violation_details}
-    show if: eviction_reason == "lease violation" and has_more_lease_violations == True
+    show if: eviction_reason == "lease violation" and has_more_lease_violations == True and forms_to_assemble != "complaint"
   - Edit: cure_allowed
     button: |
       **Tenant has right to fix lease violation:**
@@ -2915,12 +2926,12 @@ review:
     button: |
       **Additional lease violations?**
       ${ word(yesno(has_more_lease_violations)) }
-    show if: eviction_reason == "lease violation"
+    show if: eviction_reason == "lease violation" and forms_to_assemble != "complaint"
   - Edit: more_lease_violation_details
     button: |
       **More details about how the tenant violated the lease:**
       ${more_lease_violation_details}
-    show if: eviction_reason == "lease violation" and has_more_lease_violations == True
+    show if: eviction_reason == "lease violation" and has_more_lease_violations == True and forms_to_assemble != "complaint"
   - Edit: cure_allowed
     button: |
       **Tenant has right to fix lease violation:**
