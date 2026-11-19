@@ -14,7 +14,7 @@ objects:
   - users: ALPeopleList.using(there_are_any=True)
   - other_parties: ALPeopleList.using(there_are_any=True)
   - other_parties[i].alt_address: ALAddress
-  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts_plus.xlsx')
 ---
 code: |
   al_form_type = 'new_case'
@@ -44,6 +44,7 @@ code: |
   how_to_use
   accept_terms
   eviction_overview
+  residential_only
   nav.set_section('section_property_info')
   if other_parties[0].address.state != "IL":
     not_illinois_property
@@ -63,7 +64,6 @@ code: |
   nav.set_section('section_eviction_details')
   
   forms_to_assemble
-  property_county
 
   if eviction_reason == "no right to stay" and forms_to_assemble != "notice":
     no_right_to_stay_type
@@ -110,7 +110,8 @@ code: |
     service_method
     if other_parties.number() > 5:
       extra_summons
-
+    summons_required_notice
+  
     for tenant in other_parties[:5]:
       tenant.phone_number
       if tenant.has_alt_address:
@@ -118,6 +119,8 @@ code: |
         tenant.mobile_number
     if trial_court_index == -1:
       cook_district
+    elif trial_court_index == -2:
+      kane_district
     courthouse_info
     if has_court_date:
       hearing_date
@@ -236,14 +239,30 @@ subquestion: |
   
   Evictions have many steps, some require giving the tenant time to respond. If you don't follow the legal process, you may have to start over. For more information, read the "How to File & Present an Eviction Case" instructions you can download at the end of this program. 
 ---
-#id: accept terms
-# replaced by question in ILAO package
+id: residential evictions only
+continue button field: residential_only
+question: |
+  Residential evictions only
+subquestion: |
+  This Easy Form can be used only for residential evictions. Residential eviction cases involve a dwelling unit that is used as a home, residence, or sleeping place.
+
+  It can't be used in these kinds of evictions:
+
+  * Commercial property,
+  * Post-foreclosure,
+  * Mobile home,
+  * Condominium action against owners,
+  * Public and project based subsidized housing,
+  * Land-only lease, or
+  * Contract for deed (also called a rent to own agreement or installment sales agreement).
+
+  ${ collapse_template(get_legal_help) }   
 ---
 template: get_legal_help
 subject: |
-  **What if I need legal advice?**
+  **How to get legal advice if you need help**
 content: |  
-  If you have questions or concerns about your legal problem and want legal advice you should talk to a lawyer.
+  If you have questions or concerns about evicting people from your property and want legal advice you should talk to a lawyer.
   
   Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
 ---
@@ -274,7 +293,7 @@ subquestion: |
   ${ collapse_template(county_lookup_help) }  
 
 fields:
-  - no label: trial_court_index
+  - County: trial_court_index
     datatype: integer
     code: |
       court_county_lookup()
@@ -283,9 +302,9 @@ fields:
 code: |
   def court_county_lookup(lowercase=False):
     all_court_counties = court_list._load_courts()['address_county'].items()
-    filtered_courts = [(-1, "cook")] if lowercase else [(-1, "Cook")]
+    filtered_courts = [(-1, "cook"), (-2, "kane")] if lowercase else [(-1, "Cook"), (-2, "Kane")]
     for court in all_court_counties:
-      if court[1] != "Cook":
+      if court[1] != "Cook" and court[1] != "Kane":
         court_name = court[1].lower() if lowercase else court[1]
         filtered_courts.append((court[0],court_name))
     return sorted( filtered_courts, key=lambda y: y[1])
@@ -310,13 +329,14 @@ content: |
 depends on:
   - trial_court_index
   - cook_district
+  - kane_district
 code: |
   if trial_court_index == -1:
-    if forms_to_assemble == "notice":
-      trial_court = court_list.as_court('trial_court', 15)
-      trial_court.address.county = "Cook County"
-    else:
-      trial_court = court_list.as_court('trial_court', cook_district)
+    trial_court = court_list.as_court('trial_court', int(cook_district))
+
+  elif trial_court_index == -2:
+    trial_court = court_list.as_court('trial_court', int(kane_district))
+  
   else:
     trial_court = court_list.as_court('trial_court', trial_court_index)
     
@@ -326,19 +346,11 @@ code: |
   court_state = str(trial_court.address.state)
   court_zip = str(trial_court.address.zip)
   courthouse_info = court_name + ", " + court_street_address + ", " + court_city + ", " + court_state + " " + court_zip
+  
   if " county" in trial_court.address.county.lower():
     other_parties[0].address.county = trial_court.address.county
   else:
     other_parties[0].address.county = trial_court.address.county + " County"
-  
----
-depends on:
-  - trial_court_index
-code: |
-      if trial_court_index == -1:
-        property_county = "Cook"
-      else:
-        property_county = trial_court.address.county
 ---
 id: landlord or owner
 question: |
@@ -889,7 +901,7 @@ continue button field: attachments_unsure
 question: |
   Completing your Eviction Complaint
 subquestion: |
-  Before you file your *Eviction Complaint*, make sure you fill in:
+  Before you file your *Eviction Complaint*, make sure you complete:
   
   * This part of the *Eviction Complaint* (page 2), and
   
@@ -899,7 +911,7 @@ subquestion: |
   
   [FILE affidavit.png, 100%, Missing Documents Affidavit top of page 1]
   
-  Read the How to File & Present an Eviction Complaint instructions you download at the end of this program to learn more.
+  Read the "How to File & Present an Eviction Case" instructions you download at the end of this program to learn more.
 
 ---
 id: landlord name
@@ -1117,6 +1129,8 @@ subquestion: |
   If you want to use a person who is not the sheriff or a licensed process server to serve the Defendants, you must request permission from the court by filing a *Motion to Approve Process Server Who is Not Licensed*. You can use ILAO's [Request to approve an unlicensed process server](https://www.illinoislegalaid.org/node/165681) Easy Form to make the forms.
   
   **Note:** There may be a charge for a private process server or a licensed private detective.
+
+  ${ collapse_template(service_by_posting) }     
 fields:
   - no label: service_method
     datatype: radio
@@ -1124,7 +1138,21 @@ fields:
       - Sheriff (most common): sheriff
       - Private process server: sps
       - Licensed private detective: detective
-      - I don't know. I will decide and complete the Eviction Summons later.: idk
+      - I don't know. I will decide and complete the *Eviction Summons* later.: idk
+---
+template: service_by_posting
+subject: |
+  % if eviction_reason == "no right to stay":
+  **What if the sheriff or private process server can't serve the occupants?**
+  % else:
+  **What if the sheriff or private process server can't serve the tenants?**
+  % endif    
+content: |  
+  % if eviction_reason == "no right to stay":
+   If the sheriff or private process server is not able to serve the occupants, they may be able to serve the occupants by posting notices of the eviction in the area around the property. You must follow special rules to serve the occupants by posting. For more information, see pages 11-12 of "How to File & Present an Eviction Case" instructions you can download at the end of this program.
+  % else:
+   If the sheriff or private process server is not able to serve the tenants, they may be able to serve the tenants by posting notices of the eviction in the area around the property. You must follow special rules to serve the tenants by posting. For more information, see pages 11-12 of "How to File & Present an Eviction Case" instructions you can download at the end of this program.
+  % endif    
 ---
 id: extra summons required
 continue button field: extra_summons
@@ -1136,6 +1164,17 @@ subquestion: |
   You will need to fill out *Eviction Summons* forms for the other tenants in your case. 
   
   You can download blank *Eviction Summons* forms at the end of this program.
+---
+id: summons required notice
+continue button field: summons_required_notice
+question: |
+  Check with court clerk for required notices
+subquestion: |
+  All *Eviction Summons* forms that are served must include information about rental assistance. This Easy Form will attach a notice to the *Eviction Summons*, but each county has its own rules. There may be additional or different notices about rental assistance required where you are filing.
+
+  Ask your local circuit clerk what is required. Then read and complete the following section on page 3 of the *Eviction Summons* before you file your case.
+
+  [FILE summons_required_notice.png, 100%, Summons required notice checkboxes]
 ---
 id: tenant contact information
 question: |
@@ -1364,12 +1403,10 @@ depends on:
   - other_parties[0].address.city
   - trial_court
   - trial_court_index
-  #- property_county
   - number_of_units
   - is_owner_occupied
 code: |
   if trial_court_index == -1 or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
-  #if property_county == "Cook" or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
     if is_ordinance_property == True:
       if other_parties[0].address.city.lower() == "chicago" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
         applicable_law = "the Chicago Residential Landlord Tenant Ordinance applies"
@@ -1423,7 +1460,6 @@ code: |
         attorneys_fees_prohibited = True
         rec_renew_period = 60		
       elif trial_court_index == -1 and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
-      #elif property_county == "Cook" and (is_owner_occupied == False or (is_owner_occupied == True and number_of_units > 6)):
         applicable_law = "the Cook County Residential Tenant Landlord Ordinance applies"
         rec_notice_period = 5
         rec_cure_period = 10
@@ -1636,7 +1672,33 @@ template: cook_district_help
 subject: |
   **What if I am still not sure where to file?**
 content: |  
-  Visit **[Illinois Court Help](https://www.ilcourthelp.gov/)**, or you can call or text (833) 411-1121 for assistance.
+  For assistance you can contact Illinois Court Help:
+
+  * **[Visit the Illinois Court Help website :external-link:](https://www.ilcourthelp.gov/)**,
+  * <a href="tel:833-411-1121">**Call (833) 411-1121 :phone:**</a>, or
+  * <a href="sms:833-411-1121">**Text (833) 411-1121 :comment:**</a>.
+---
+id: Kane County district
+question: |
+  Where do you want to file your eviction case?
+subquestion: |
+  This information should be found near the top of your court papers.
+
+  ${ collapse_template(kane_district_help) }  
+field: kane_district
+choices:
+  - Kane County Courthouse, 100 S. 3rd Street, Geneva: 52
+  - Kane County Judicial Center, 37W777 Route 38, St. Charles: 53
+---
+template: kane_district_help
+subject: |
+  **What if I am not sure where to file?**
+content: |  
+  For assistance you can contact Illinois Court Help:
+
+  * **[Visit the Illinois Court Help website :external-link:](https://www.ilcourthelp.gov/)**,
+  * <a href="tel:833-411-1121">**Call (833) 411-1121 :phone:**</a>, or
+  * <a href="sms:833-411-1121">**Text (833) 411-1121 :comment:**</a>.
 ---
 id: e-signature
 question: |
@@ -1821,7 +1883,6 @@ code: |
     if attach_notice != "Yes" or attach_service != "Yes" or attach_lease != "Yes":
       eviction_complaint_affidavit.enabled = True
     if trial_court_index == -1:
-    #if property_county == "Cook":
       eviction_help_cook_county.enabled = True
     elif trial_court.address.county == "DuPage":
       eviction_help_dupage_county.enabled = True
@@ -2468,9 +2529,8 @@ review:
       % if " county" in other_parties[0].address.county.lower():
       ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county }
       % else:
-      ${ other_parties[0].address.on_one_line(bare=True) }, ${ property_county } County
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county } County
       % endif
-  
   - Edit: is_owner_occupied
     button: |
       **Landlord lives in property:**
@@ -2710,7 +2770,10 @@ review:
       **Your email:**
       ${ users[0].email }
     show if: users[0].email_notice
-  - Edit: cook_district
+  - Edit: 
+      - cook_district
+      - recompute:
+        - trial_court
     button: |
       **Cook County courthouse:**
       % if cook_district == "15":
@@ -2723,10 +2786,25 @@ review:
       ${ "Fourth Municipal District, 1500 Maybrook Drive, Maywood" }
       % elif cook_district == "19":
       ${ "Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview" }
-      % else:
+      % elif cook_district == "20":
       ${ "Sixth Municipal District, 16501 South Kedzie Parkway, Markham" }
-      % endif      
+      No courthouse selected
+      % endif   
     show if: trial_court_index == -1
+  - Edit:
+      - kane_district
+      - recompute:
+        - trial_court
+    button: |
+      **Kane County courthouse:**
+      % if kane_district == "52":
+      ${ "Kane County Courthouse, 100 S. 3rd Street, Geneva" }
+      % elif kane_district == "53":
+      ${ "Kane County Judicial Center, 37W777 Route 38, St. Charles" }
+      % else:
+      No courthouse selected
+      % endif
+    show if: trial_court_index == -2
   - Edit: e_signature
     button: |
       **Do you want to e-sign your *Eviction Complaint*?**
@@ -2855,7 +2933,7 @@ review:
       % if " county" in other_parties[0].address.county.lower():
       ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county }
       % else:
-      ${ other_parties[0].address.on_one_line(bare=True) }, ${ property_county } County
+      ${ other_parties[0].address.on_one_line(bare=True) }, ${ other_parties[0].address.county } County
       % endif
   - Edit: is_owner_occupied
     button: |
@@ -3097,8 +3175,10 @@ review:
       % else:
       I don't know. I will decide later.
       % endif
-      
-  - Edit: cook_district
+  - Edit: 
+      - cook_district
+      - recompute:
+        - trial_court
     button: |
       **Cook County courthouse:**
       % if cook_district == "15":
@@ -3111,10 +3191,25 @@ review:
       ${ "Fourth Municipal District, 1500 Maybrook Drive, Maywood" }
       % elif cook_district == "19":
       ${ "Fifth Municipal District, 10220 S. 76th Avenue, Bridgeview" }
-      % else:
+      % elif cook_district == "20":
       ${ "Sixth Municipal District, 16501 South Kedzie Parkway, Markham" }
-      % endif      
+      No courthouse selected
+      % endif   
     show if: trial_court_index == -1
+  - Edit:
+      - kane_district
+      - recompute:
+        - trial_court
+    button: |
+      **Kane County courthouse:**
+      % if kane_district == "52":
+      ${ "Kane County Courthouse, 100 S. 3rd Street, Geneva" }
+      % elif kane_district == "53":
+      ${ "Kane County Judicial Center, 37W777 Route 38, St. Charles" }
+      % else:
+      No courthouse selected
+      % endif
+    show if: trial_court_index == -2
   - Edit: e_signature
     button: |
       **Do you want to e-sign you *Eviction Complaint*?**
