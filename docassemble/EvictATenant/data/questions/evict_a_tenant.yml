@@ -46,10 +46,10 @@ code: |
   eviction_overview
   residential_only
   nav.set_section('section_property_info')
-  if other_parties[0].address.state != "IL":
-    not_illinois_property
   if landlord_or_owner == False:
     not_landlord_or_owner
+  if other_parties[0].address.state != "IL":
+    not_illinois_property
   
   if trial_court_index == -1 or other_parties[0].address.city.lower() == "dekalb" or other_parties[0].address.city.lower() == "urbana":
     if is_owner_occupied:
@@ -244,7 +244,7 @@ continue button field: residential_only
 question: |
   Residential evictions only
 subquestion: |
-  This Easy Form can be used only for residential evictions. Residential eviction cases involve a dwelling unit that is used as a home, residence, or sleeping place.
+  This Easy Form can be used only for residential evictions. Residential eviction cases involve a place where someone lives. This could be a home, residence, or sleeping place.
 
   It can't be used in these kinds of evictions:
 
@@ -693,6 +693,8 @@ subquestion: |
   
   Note: Your lease agreement may require a "right to cure" or a longer notice period.
   % endif
+
+  ${ collapse_template(cure_example) } 
 fields:
   - Right to fix?: cure_allowed
     datatype: yesnoradio
@@ -776,13 +778,13 @@ question: |
 fields:
   - label: I cannot find or did not save the *Notice* or *Demand*.
     field: notice_lost
-    datatype: yesno
+    datatype: yesnowide
   - label: A *Notice* or *Demand* is not required in this case.
     field: notice_not_required
-    datatype: yesno
+    datatype: yesnowide
   - label: Other reason
     field: notice_not_attached_other
-    datatype: yesno
+    datatype: yesnowide
   - label: Explain why you are not attaching the *Notice* or *Demand*
     field: notice_not_attached_other_reason
     input type: area
@@ -822,13 +824,13 @@ question: |
 fields:
   - label: I cannot find or did not save my copy.
     field: service_lost
-    datatype: yesno
+    datatype: yesnowide
   - label: A *Notice* or *Demand* is not required in this case.
     field: service_not_required
-    datatype: yesno
+    datatype: yesnowide
   - label: Other reason
     field: service_not_attached_other
-    datatype: yesno
+    datatype: yesnowide
   - label: Explain why you are not attaching proof of service
     field: service_not_attached_other_reason
     input type: area
@@ -853,16 +855,16 @@ question: |
 fields:
   - label: A written lease is not required in this case.
     field: lease_not_required
-    datatype: yesno
+    datatype: yesnowide
   - label: I did not have a written lease with the tenant.
     field: lease_not_written
-    datatype: yesno
+    datatype: yesnowide
   - label: I cannot find or did not save my copy.
     field: lease_lost
-    datatype: yesno
+    datatype: yesnowide
   - label: Other reason
     field: lease_not_attached_other
-    datatype: yesno
+    datatype: yesnowide
   - label: Explain why you are not attaching the written lease
     field: lease_not_attached_other_reason
     input type: area
@@ -2518,7 +2520,9 @@ question: |
   Review screen
 subquestion: |
   Edit your answers below.
-review: 
+review:
+  - note: |
+      <h4>Basic info</h4>
   - Edit:
       - other_parties[0].address.address
       - recompute:
@@ -2554,10 +2558,12 @@ review:
     button: |
       **Forms you want to make (Notice, Complaint, or both):**
       ${ forms_to_assemble }
+  - note: |
+      <h4>Eviction details</h4>
   - Edit: eviction_reason
     button: |
       **Eviction reason:**
-      ${eviction_reason}
+      ${eviction_reason.capitalize()}
   - Edit: rent_owed
     button: |
       **Rent owed:** $
@@ -2618,6 +2624,12 @@ review:
       **Lease end date:**
       ${ lease_end_date }
     show if: eviction_reason == "non-renewal"
+  - note: |
+      <h4>Eviction court forms (optional)</h4>    
+  - Edit: unknown_occupants
+    button: |
+      **Include "Unknown Occupants" on *Eviction Complaint*:**
+      ${ word(yesno(unknown_occupants)) }      
   - Edit: past_rent_requested
     button: |
       **Past rent owed:**
@@ -2731,10 +2743,6 @@ review:
       **Description of other documents attaching to *Eviction Complaint*:**
       ${ other_attachments }
     show if: attach_other == "Yes"
-  - Edit: unknown_occupants
-    button: |
-      **Include "Unknown Occupants" on *Eviction Complaint*:**
-      ${ word(yesno(unknown_occupants)) }
 
   - Edit: service_method
     button: |
@@ -2748,28 +2756,6 @@ review:
       % else:
       I don't know. I will decide later.
       % endif
-      
-  - Edit: users[0].name.first
-    button: |
-      **Your name:**
-      ${users[0].name_full()}
-  - Edit: users[0].address.address
-    button: |
-      **Your address:**
-      ${ users[0].address.on_one_line(bare=True) }
-  - Edit: users[0].phone_number
-    button: |
-      **Your phone number:**
-      ${ phone_number_formatted(users[0].phone_number) }
-  - Edit: users[0].email_notice
-    button: |
-      **Do you have an email address?**
-      ${ word(yesno(users[0].email_notice)) }
-  - Edit: users[0].email
-    button: |
-      **Your email:**
-      ${ users[0].email }
-    show if: users[0].email_notice
   - Edit: 
       - cook_district
       - recompute:
@@ -2855,6 +2841,30 @@ review:
       **Call-in phone number for remote appearance:**
       ${ phone_number_formatted(remote_phone) }
     show if: attend_court['remote'] == True
+      
+  - note: |
+      <h4>About you</h4>      
+  - Edit: users[0].name.first
+    button: |
+      **Your name:**
+      ${users[0].name_full()}
+  - Edit: users[0].address.address
+    button: |
+      **Your address:**
+      ${ users[0].address.on_one_line(bare=True) }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone number:**
+      ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].email_notice
+    button: |
+      **Do you have an email address?**
+      ${ word(yesno(users[0].email_notice)) }
+  - Edit: users[0].email
+    button: |
+      **Your email:**
+      ${ users[0].email }
+    show if: users[0].email_notice
 ---
 id: edit the tenants review screen
 continue button field: other_parties.revisit
@@ -2974,7 +2984,7 @@ review:
   - Edit: eviction_reason
     button: |
       **Eviction reason:**
-      ${eviction_reason}
+      ${eviction_reason.capitalize()}
   - Edit: rent_owed
     button: |
       **Rent owed:** $
@@ -3045,6 +3055,10 @@ question: |
 subquestion: |
   Edit your answers below.
 review:
+  - Edit: unknown_occupants
+    button: |
+      **Include "Unknown Occupants" on *Eviction Complaint*:**
+      ${ word(yesno(unknown_occupants)) }
   - Edit: past_rent_requested
     button: |
       **Past rent owed:**
@@ -3158,10 +3172,6 @@ review:
       **Description of other documents attaching to *Eviction Complaint*:**
       ${ other_attachments }
     show if: attach_other == "Yes"
-  - Edit: unknown_occupants
-    button: |
-      **Include "Unknown Occupants" on *Eviction Complaint*:**
-      ${ word(yesno(unknown_occupants)) }
 
   - Edit: service_method
     button: |
